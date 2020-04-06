@@ -1,0 +1,80 @@
+scalar DateTime
+
+type Query {
+	owners: [Owner!]!
+	owner(id: ID): Owner
+	sites: [Site!]!
+	site(id: ID): Site
+}
+
+type Mutation {
+	createNewOwner(
+		last_name: String!
+		first_name: String!
+		email: String!
+		password: String!
+		phone_number: String
+	): Owner!
+	signup(
+		email: String!
+		password: String!
+		first_name: String!
+		last_name: String!
+		phone_number: String
+	): AuthPayload
+	login(email: String!, password: String!): AuthPayload
+}
+
+type AuthPayload {
+	token: String
+	owner: Owner
+}
+
+type Owner {
+	id: ID!
+	last_name: String!
+	first_name: String!
+	email: String!
+	password: String!
+	phone_number: String
+	p_addresses: [PermAddress!]!
+}
+
+type PermAddress {
+	id: ID!
+	address: String!
+	city: String!
+	state: String!
+	zip_code: Int!
+}
+
+type Site {
+	id: ID!
+	trout_lake_water: Boolean!
+	tl_addresses: [TLAddress!]!
+	owners: [Owner!]!
+}
+
+type TLAddress {
+	id: ID!
+	address: String!
+	city: String!
+	state: String!
+	zip_code: Int!
+}
+
+type Bill {
+	id: ID!
+	year: Int!
+	payment: [Payment]
+	payment_due: DateTime!
+	sites: [Site!]!
+}
+
+type Payment {
+	id: ID!
+	paid: Boolean!
+	payment_type: String!
+	date_paid: DateTime! 
+	bills: [Bill!]!
+}

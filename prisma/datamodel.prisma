@@ -1,0 +1,49 @@
+type Owner {
+  id: ID! @unique
+  last_name: String!
+  first_name: String!
+  email: String! @unique
+  password: String!
+  phone_number: String
+  p_addresses: [PermAddress!]!
+  updatedAt: DateTime! @updatedAt
+}
+
+type PermAddress {
+  id: ID! @unique
+  address: String!
+  city: String!
+  state: String!
+  zip_code: Int!
+}
+
+type Site {
+  id: ID! @unique
+  trout_lake_water: Boolean!
+  tl_addresses: [TLAddress!]!
+  owners: [Owner!]!
+}
+
+type TLAddress {
+  id: ID! @unique
+  address: String!
+  city: String!
+  state: String!
+  zip_code: Int!
+}
+
+type Bill {
+  id: ID! @unique
+  year: Int!
+  payment: Payment
+  payment_due: DateTime!
+  sites: [Site!]!
+}
+
+type Payment {
+  id: ID! @unique
+  paid: Boolean! @default(value: false)
+  payment_type: String!
+  date_paid: DateTime! @createdAt
+  bills: [Bill!]!
+}
