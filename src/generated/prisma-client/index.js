@@ -17,10 +17,6 @@ var models = [
     embedded: false
   },
   {
-    name: "TLAddress",
-    embedded: false
-  },
-  {
     name: "Bill",
     embedded: false
   },

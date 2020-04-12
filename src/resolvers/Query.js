@@ -12,7 +12,7 @@ const sites = (root, args, context, info) => {
 }
 
 const site = (root, { id }, context, info) => {
-  return context.prisma.site({ id: args.id });
+  return context.prisma.site({ id: id });
 }
 
 module.exports = {

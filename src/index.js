@@ -3,12 +3,14 @@ const { prisma } = require('./generated/prisma-client');
 const Query = require('./resolvers/Query')
 const Mutation = require('./resolvers/Mutation')
 // const Subscription = require('./resolvers/Subscription')
-// const User = require('./resolvers/User')
-// const Link = require('./resolvers/Link')
+const Owner = require('./resolvers/Owner')
+const PermAddress = require('./resolvers/PermAddress')
 
 const resolvers = {
 	Query,
 	Mutation,
+	Owner,
+	PermAddress
 };
 
 const server = new GraphQLServer({

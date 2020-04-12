@@ -1,5 +1,20 @@
 scalar DateTime
 
+enum TLRoadSide {
+	NORTH
+	SOUTH
+}
+
+enum LandCompany {
+	TROUT_LAKE_LAND_COMPANY
+	LIZARD_HEAD_LAND_COMPANY
+}
+
+enum Association {
+	TL_OWNERS_ASSOCIATION
+	LHLC_OWNERS_ASSOCIATION
+}
+
 type Query {
 	owners: [Owner!]!
 	owner(id: ID): Owner
@@ -11,18 +26,37 @@ type Mutation {
 	createNewOwner(
 		last_name: String!
 		first_name: String!
-		email: String!
+		primary_email: String!
+		alt_email: String
 		password: String!
-		phone_number: String
+		perm_phone_number: String
+		other_phone_number: String
 	): Owner!
+	createSite(
+		site_number: Int!
+		tl_road_side: TLRoadSide!
+		tl_address: String!
+		land_company: LandCompany!
+		owners_association: Association!
+		trout_lake_water: Boolean!
+		site_phone_number: String
+	): Site!
+	createPermAddress(
+		address: String!
+		city: String!
+		state: String!
+		zip_code: String!
+	): PermAddress!
 	signup(
-		email: String!
-		password: String!
-		first_name: String!
 		last_name: String!
-		phone_number: String
+		first_name: String!
+		primary_email: String!
+		alt_email: String
+		password: String!
+		perm_phone_number: String
+		other_phone_number: String
 	): AuthPayload
-	login(email: String!, password: String!): AuthPayload
+	login(primary_email: String!, password: String!): AuthPayload
 }
 
 type AuthPayload {
@@ -34,10 +68,12 @@ type Owner {
 	id: ID!
 	last_name: String!
 	first_name: String!
-	email: String!
+	primary_email: String!
+	alt_email: String
 	password: String!
-	phone_number: String
-	p_addresses: [PermAddress!]!
+	perm_phone_number: String
+	other_phone_number: String
+	p_addresses: PermAddress
 }
 
 type PermAddress {
@@ -46,29 +82,27 @@ type PermAddress {
 	city: String!
 	state: String!
 	zip_code: Int!
+	createdBy: Owner
 }
 
 type Site {
 	id: ID!
+	site_number: Int!
+	tl_road_side: TLRoadSide!
+	tl_address: String!
+	land_company: LandCompany!
+	owners_association: Association!
 	trout_lake_water: Boolean!
-	tl_addresses: [TLAddress!]!
 	owners: [Owner!]!
-}
-
-type TLAddress {
-	id: ID!
-	address: String!
-	city: String!
-	state: String!
-	zip_code: Int!
+	site_phone_number: String
 }
 
 type Bill {
 	id: ID!
 	year: Int!
-	payment: [Payment]
+	payment: Payment
 	payment_due: DateTime!
-	sites: [Site!]!
+	site: Site
 }
 
 type Payment {

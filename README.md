@@ -1,2 +1,2 @@
 # Trout Lake Water Association 
-This server is for the Trout Lake Water Association's (TLWA) to manage administration of the sites of the Trout Lake Cabin Owners Association (TLCOA), Trout Lake Owners Association (TLOA), Trout Lake Land Company (TLLC), and Lizard Head Land Company and Owners Association (LHLC) that use Trout Lake Water.
+This server is for the Trout Lake Water Association's (TLWA) to manage administration of the sites using Trout Lake Water from the Trout Lake Cabin Owners Association (TLCOA), Trout Lake Owners Association (TLOA), Trout Lake Land Company (TLLC), and Lizard Head Land Company and Owners Association (LHLC).

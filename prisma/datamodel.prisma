@@ -2,10 +2,12 @@ type Owner {
   id: ID! @unique
   last_name: String!
   first_name: String!
-  email: String! @unique
+  primary_email: String! @unique
+  alt_email: String @unique
   password: String!
-  phone_number: String
-  p_addresses: [PermAddress!]!
+  perm_phone_number: String
+  other_phone_number: String
+  p_addresses: PermAddress
   updatedAt: DateTime! @updatedAt
 }
 
@@ -14,22 +16,20 @@ type PermAddress {
   address: String!
   city: String!
   state: String!
-  zip_code: Int!
+  zip_code: String!
+  createdBy: Owner
 }
 
 type Site {
   id: ID! @unique
+  site_number: Int! @unique
+  tl_road_side: String!
+  tl_address: String!
+  land_company: String!
+  owners_association: String!
   trout_lake_water: Boolean!
-  tl_addresses: [TLAddress!]!
   owners: [Owner!]!
-}
-
-type TLAddress {
-  id: ID! @unique
-  address: String!
-  city: String!
-  state: String!
-  zip_code: Int!
+  site_phone_number: String
 }
 
 type Bill {
@@ -37,7 +37,7 @@ type Bill {
   year: Int!
   payment: Payment
   payment_due: DateTime!
-  sites: [Site!]!
+  site: Site
 }
 
 type Payment {

@@ -23,10 +23,6 @@ type AggregateSite {
   count: Int!
 }
 
-type AggregateTLAddress {
-  count: Int!
-}
-
 type BatchPayload {
   count: Long!
 }
@@ -36,7 +32,7 @@ type Bill {
   year: Int!
   payment: Payment
   payment_due: DateTime!
-  sites(where: SiteWhereInput, orderBy: SiteOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Site!]
+  site: Site
 }
 
 type BillConnection {
@@ -49,7 +45,7 @@ input BillCreateInput {
   year: Int!
   payment: PaymentCreateOneWithoutBillsInput
   payment_due: DateTime!
-  sites: SiteCreateManyInput
+  site: SiteCreateOneInput
 }
 
 input BillCreateManyWithoutPaymentInput {
@@ -60,7 +56,7 @@ input BillCreateManyWithoutPaymentInput {
 input BillCreateWithoutPaymentInput {
   year: Int!
   payment_due: DateTime!
-  sites: SiteCreateManyInput
+  site: SiteCreateOneInput
 }
 
 type BillEdge {
@@ -141,7 +137,7 @@ input BillUpdateInput {
   year: Int
   payment: PaymentUpdateOneWithoutBillsInput
   payment_due: DateTime
-  sites: SiteUpdateManyInput
+  site: SiteUpdateOneInput
 }
 
 input BillUpdateManyDataInput {
@@ -174,7 +170,7 @@ input BillUpdateManyWithWhereNestedInput {
 input BillUpdateWithoutPaymentDataInput {
   year: Int
   payment_due: DateTime
-  sites: SiteUpdateManyInput
+  site: SiteUpdateOneInput
 }
 
 input BillUpdateWithWhereUniqueWithoutPaymentInput {
@@ -220,9 +216,7 @@ input BillWhereInput {
   payment_due_lte: DateTime
   payment_due_gt: DateTime
   payment_due_gte: DateTime
-  sites_every: SiteWhereInput
-  sites_some: SiteWhereInput
-  sites_none: SiteWhereInput
+  site: SiteWhereInput
   AND: [BillWhereInput!]
   OR: [BillWhereInput!]
   NOT: [BillWhereInput!]
@@ -267,12 +261,6 @@ type Mutation {
   upsertSite(where: SiteWhereUniqueInput!, create: SiteCreateInput!, update: SiteUpdateInput!): Site!
   deleteSite(where: SiteWhereUniqueInput!): Site
   deleteManySites(where: SiteWhereInput): BatchPayload!
-  createTLAddress(data: TLAddressCreateInput!): TLAddress!
-  updateTLAddress(data: TLAddressUpdateInput!, where: TLAddressWhereUniqueInput!): TLAddress
-  updateManyTLAddresses(data: TLAddressUpdateManyMutationInput!, where: TLAddressWhereInput): BatchPayload!
-  upsertTLAddress(where: TLAddressWhereUniqueInput!, create: TLAddressCreateInput!, update: TLAddressUpdateInput!): TLAddress!
-  deleteTLAddress(where: TLAddressWhereUniqueInput!): TLAddress
-  deleteManyTLAddresses(where: TLAddressWhereInput): BatchPayload!
 }
 
 enum MutationType {
@@ -289,10 +277,12 @@ type Owner {
   id: ID!
   last_name: String!
   first_name: String!
-  email: String!
+  primary_email: String!
+  alt_email: String
   password: String!
-  phone_number: String
-  p_addresses(where: PermAddressWhereInput, orderBy: PermAddressOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [PermAddress!]
+  perm_phone_number: String
+  other_phone_number: String
+  p_addresses: PermAddress
   updatedAt: DateTime!
 }
 
@@ -305,15 +295,32 @@ type OwnerConnection {
 input OwnerCreateInput {
   last_name: String!
   first_name: String!
-  email: String!
+  primary_email: String!
+  alt_email: String
   password: String!
-  phone_number: String
-  p_addresses: PermAddressCreateManyInput
+  perm_phone_number: String
+  other_phone_number: String
+  p_addresses: PermAddressCreateOneWithoutCreatedByInput
 }
 
 input OwnerCreateManyInput {
   create: [OwnerCreateInput!]
   connect: [OwnerWhereUniqueInput!]
+}
+
+input OwnerCreateOneWithoutP_addressesInput {
+  create: OwnerCreateWithoutP_addressesInput
+  connect: OwnerWhereUniqueInput
+}
+
+input OwnerCreateWithoutP_addressesInput {
+  last_name: String!
+  first_name: String!
+  primary_email: String!
+  alt_email: String
+  password: String!
+  perm_phone_number: String
+  other_phone_number: String
 }
 
 type OwnerEdge {
@@ -328,12 +335,16 @@ enum OwnerOrderByInput {
   last_name_DESC
   first_name_ASC
   first_name_DESC
-  email_ASC
-  email_DESC
+  primary_email_ASC
+  primary_email_DESC
+  alt_email_ASC
+  alt_email_DESC
   password_ASC
   password_DESC
-  phone_number_ASC
-  phone_number_DESC
+  perm_phone_number_ASC
+  perm_phone_number_DESC
+  other_phone_number_ASC
+  other_phone_number_DESC
   updatedAt_ASC
   updatedAt_DESC
 }
@@ -342,9 +353,11 @@ type OwnerPreviousValues {
   id: ID!
   last_name: String!
   first_name: String!
-  email: String!
+  primary_email: String!
+  alt_email: String
   password: String!
-  phone_number: String
+  perm_phone_number: String
+  other_phone_number: String
   updatedAt: DateTime!
 }
 
@@ -391,20 +404,34 @@ input OwnerScalarWhereInput {
   first_name_not_starts_with: String
   first_name_ends_with: String
   first_name_not_ends_with: String
-  email: String
-  email_not: String
-  email_in: [String!]
-  email_not_in: [String!]
-  email_lt: String
-  email_lte: String
-  email_gt: String
-  email_gte: String
-  email_contains: String
-  email_not_contains: String
-  email_starts_with: String
-  email_not_starts_with: String
-  email_ends_with: String
-  email_not_ends_with: String
+  primary_email: String
+  primary_email_not: String
+  primary_email_in: [String!]
+  primary_email_not_in: [String!]
+  primary_email_lt: String
+  primary_email_lte: String
+  primary_email_gt: String
+  primary_email_gte: String
+  primary_email_contains: String
+  primary_email_not_contains: String
+  primary_email_starts_with: String
+  primary_email_not_starts_with: String
+  primary_email_ends_with: String
+  primary_email_not_ends_with: String
+  alt_email: String
+  alt_email_not: String
+  alt_email_in: [String!]
+  alt_email_not_in: [String!]
+  alt_email_lt: String
+  alt_email_lte: String
+  alt_email_gt: String
+  alt_email_gte: String
+  alt_email_contains: String
+  alt_email_not_contains: String
+  alt_email_starts_with: String
+  alt_email_not_starts_with: String
+  alt_email_ends_with: String
+  alt_email_not_ends_with: String
   password: String
   password_not: String
   password_in: [String!]
@@ -419,20 +446,34 @@ input OwnerScalarWhereInput {
   password_not_starts_with: String
   password_ends_with: String
   password_not_ends_with: String
-  phone_number: String
-  phone_number_not: String
-  phone_number_in: [String!]
-  phone_number_not_in: [String!]
-  phone_number_lt: String
-  phone_number_lte: String
-  phone_number_gt: String
-  phone_number_gte: String
-  phone_number_contains: String
-  phone_number_not_contains: String
-  phone_number_starts_with: String
-  phone_number_not_starts_with: String
-  phone_number_ends_with: String
-  phone_number_not_ends_with: String
+  perm_phone_number: String
+  perm_phone_number_not: String
+  perm_phone_number_in: [String!]
+  perm_phone_number_not_in: [String!]
+  perm_phone_number_lt: String
+  perm_phone_number_lte: String
+  perm_phone_number_gt: String
+  perm_phone_number_gte: String
+  perm_phone_number_contains: String
+  perm_phone_number_not_contains: String
+  perm_phone_number_starts_with: String
+  perm_phone_number_not_starts_with: String
+  perm_phone_number_ends_with: String
+  perm_phone_number_not_ends_with: String
+  other_phone_number: String
+  other_phone_number_not: String
+  other_phone_number_in: [String!]
+  other_phone_number_not_in: [String!]
+  other_phone_number_lt: String
+  other_phone_number_lte: String
+  other_phone_number_gt: String
+  other_phone_number_gte: String
+  other_phone_number_contains: String
+  other_phone_number_not_contains: String
+  other_phone_number_starts_with: String
+  other_phone_number_not_starts_with: String
+  other_phone_number_ends_with: String
+  other_phone_number_not_ends_with: String
   updatedAt: DateTime
   updatedAt_not: DateTime
   updatedAt_in: [DateTime!]
@@ -467,27 +508,33 @@ input OwnerSubscriptionWhereInput {
 input OwnerUpdateDataInput {
   last_name: String
   first_name: String
-  email: String
+  primary_email: String
+  alt_email: String
   password: String
-  phone_number: String
-  p_addresses: PermAddressUpdateManyInput
+  perm_phone_number: String
+  other_phone_number: String
+  p_addresses: PermAddressUpdateOneWithoutCreatedByInput
 }
 
 input OwnerUpdateInput {
   last_name: String
   first_name: String
-  email: String
+  primary_email: String
+  alt_email: String
   password: String
-  phone_number: String
-  p_addresses: PermAddressUpdateManyInput
+  perm_phone_number: String
+  other_phone_number: String
+  p_addresses: PermAddressUpdateOneWithoutCreatedByInput
 }
 
 input OwnerUpdateManyDataInput {
   last_name: String
   first_name: String
-  email: String
+  primary_email: String
+  alt_email: String
   password: String
-  phone_number: String
+  perm_phone_number: String
+  other_phone_number: String
 }
 
 input OwnerUpdateManyInput {
@@ -505,9 +552,11 @@ input OwnerUpdateManyInput {
 input OwnerUpdateManyMutationInput {
   last_name: String
   first_name: String
-  email: String
+  primary_email: String
+  alt_email: String
   password: String
-  phone_number: String
+  perm_phone_number: String
+  other_phone_number: String
 }
 
 input OwnerUpdateManyWithWhereNestedInput {
@@ -515,9 +564,33 @@ input OwnerUpdateManyWithWhereNestedInput {
   data: OwnerUpdateManyDataInput!
 }
 
+input OwnerUpdateOneWithoutP_addressesInput {
+  create: OwnerCreateWithoutP_addressesInput
+  update: OwnerUpdateWithoutP_addressesDataInput
+  upsert: OwnerUpsertWithoutP_addressesInput
+  delete: Boolean
+  disconnect: Boolean
+  connect: OwnerWhereUniqueInput
+}
+
+input OwnerUpdateWithoutP_addressesDataInput {
+  last_name: String
+  first_name: String
+  primary_email: String
+  alt_email: String
+  password: String
+  perm_phone_number: String
+  other_phone_number: String
+}
+
 input OwnerUpdateWithWhereUniqueNestedInput {
   where: OwnerWhereUniqueInput!
   data: OwnerUpdateDataInput!
+}
+
+input OwnerUpsertWithoutP_addressesInput {
+  update: OwnerUpdateWithoutP_addressesDataInput!
+  create: OwnerCreateWithoutP_addressesInput!
 }
 
 input OwnerUpsertWithWhereUniqueNestedInput {
@@ -569,20 +642,34 @@ input OwnerWhereInput {
   first_name_not_starts_with: String
   first_name_ends_with: String
   first_name_not_ends_with: String
-  email: String
-  email_not: String
-  email_in: [String!]
-  email_not_in: [String!]
-  email_lt: String
-  email_lte: String
-  email_gt: String
-  email_gte: String
-  email_contains: String
-  email_not_contains: String
-  email_starts_with: String
-  email_not_starts_with: String
-  email_ends_with: String
-  email_not_ends_with: String
+  primary_email: String
+  primary_email_not: String
+  primary_email_in: [String!]
+  primary_email_not_in: [String!]
+  primary_email_lt: String
+  primary_email_lte: String
+  primary_email_gt: String
+  primary_email_gte: String
+  primary_email_contains: String
+  primary_email_not_contains: String
+  primary_email_starts_with: String
+  primary_email_not_starts_with: String
+  primary_email_ends_with: String
+  primary_email_not_ends_with: String
+  alt_email: String
+  alt_email_not: String
+  alt_email_in: [String!]
+  alt_email_not_in: [String!]
+  alt_email_lt: String
+  alt_email_lte: String
+  alt_email_gt: String
+  alt_email_gte: String
+  alt_email_contains: String
+  alt_email_not_contains: String
+  alt_email_starts_with: String
+  alt_email_not_starts_with: String
+  alt_email_ends_with: String
+  alt_email_not_ends_with: String
   password: String
   password_not: String
   password_in: [String!]
@@ -597,23 +684,35 @@ input OwnerWhereInput {
   password_not_starts_with: String
   password_ends_with: String
   password_not_ends_with: String
-  phone_number: String
-  phone_number_not: String
-  phone_number_in: [String!]
-  phone_number_not_in: [String!]
-  phone_number_lt: String
-  phone_number_lte: String
-  phone_number_gt: String
-  phone_number_gte: String
-  phone_number_contains: String
-  phone_number_not_contains: String
-  phone_number_starts_with: String
-  phone_number_not_starts_with: String
-  phone_number_ends_with: String
-  phone_number_not_ends_with: String
-  p_addresses_every: PermAddressWhereInput
-  p_addresses_some: PermAddressWhereInput
-  p_addresses_none: PermAddressWhereInput
+  perm_phone_number: String
+  perm_phone_number_not: String
+  perm_phone_number_in: [String!]
+  perm_phone_number_not_in: [String!]
+  perm_phone_number_lt: String
+  perm_phone_number_lte: String
+  perm_phone_number_gt: String
+  perm_phone_number_gte: String
+  perm_phone_number_contains: String
+  perm_phone_number_not_contains: String
+  perm_phone_number_starts_with: String
+  perm_phone_number_not_starts_with: String
+  perm_phone_number_ends_with: String
+  perm_phone_number_not_ends_with: String
+  other_phone_number: String
+  other_phone_number_not: String
+  other_phone_number_in: [String!]
+  other_phone_number_not_in: [String!]
+  other_phone_number_lt: String
+  other_phone_number_lte: String
+  other_phone_number_gt: String
+  other_phone_number_gte: String
+  other_phone_number_contains: String
+  other_phone_number_not_contains: String
+  other_phone_number_starts_with: String
+  other_phone_number_not_starts_with: String
+  other_phone_number_ends_with: String
+  other_phone_number_not_ends_with: String
+  p_addresses: PermAddressWhereInput
   updatedAt: DateTime
   updatedAt_not: DateTime
   updatedAt_in: [DateTime!]
@@ -629,7 +728,8 @@ input OwnerWhereInput {
 
 input OwnerWhereUniqueInput {
   id: ID
-  email: String
+  primary_email: String
+  alt_email: String
 }
 
 type PageInfo {
@@ -796,7 +896,8 @@ type PermAddress {
   address: String!
   city: String!
   state: String!
-  zip_code: Int!
+  zip_code: String!
+  createdBy: Owner
 }
 
 type PermAddressConnection {
@@ -809,12 +910,20 @@ input PermAddressCreateInput {
   address: String!
   city: String!
   state: String!
-  zip_code: Int!
+  zip_code: String!
+  createdBy: OwnerCreateOneWithoutP_addressesInput
 }
 
-input PermAddressCreateManyInput {
-  create: [PermAddressCreateInput!]
-  connect: [PermAddressWhereUniqueInput!]
+input PermAddressCreateOneWithoutCreatedByInput {
+  create: PermAddressCreateWithoutCreatedByInput
+  connect: PermAddressWhereUniqueInput
+}
+
+input PermAddressCreateWithoutCreatedByInput {
+  address: String!
+  city: String!
+  state: String!
+  zip_code: String!
 }
 
 type PermAddressEdge {
@@ -840,77 +949,7 @@ type PermAddressPreviousValues {
   address: String!
   city: String!
   state: String!
-  zip_code: Int!
-}
-
-input PermAddressScalarWhereInput {
-  id: ID
-  id_not: ID
-  id_in: [ID!]
-  id_not_in: [ID!]
-  id_lt: ID
-  id_lte: ID
-  id_gt: ID
-  id_gte: ID
-  id_contains: ID
-  id_not_contains: ID
-  id_starts_with: ID
-  id_not_starts_with: ID
-  id_ends_with: ID
-  id_not_ends_with: ID
-  address: String
-  address_not: String
-  address_in: [String!]
-  address_not_in: [String!]
-  address_lt: String
-  address_lte: String
-  address_gt: String
-  address_gte: String
-  address_contains: String
-  address_not_contains: String
-  address_starts_with: String
-  address_not_starts_with: String
-  address_ends_with: String
-  address_not_ends_with: String
-  city: String
-  city_not: String
-  city_in: [String!]
-  city_not_in: [String!]
-  city_lt: String
-  city_lte: String
-  city_gt: String
-  city_gte: String
-  city_contains: String
-  city_not_contains: String
-  city_starts_with: String
-  city_not_starts_with: String
-  city_ends_with: String
-  city_not_ends_with: String
-  state: String
-  state_not: String
-  state_in: [String!]
-  state_not_in: [String!]
-  state_lt: String
-  state_lte: String
-  state_gt: String
-  state_gte: String
-  state_contains: String
-  state_not_contains: String
-  state_starts_with: String
-  state_not_starts_with: String
-  state_ends_with: String
-  state_not_ends_with: String
-  zip_code: Int
-  zip_code_not: Int
-  zip_code_in: [Int!]
-  zip_code_not_in: [Int!]
-  zip_code_lt: Int
-  zip_code_lte: Int
-  zip_code_gt: Int
-  zip_code_gte: Int
-  AND: [PermAddressScalarWhereInput!]
-  OR: [PermAddressScalarWhereInput!]
-  NOT: [PermAddressScalarWhereInput!]
+  zip_code: String!
 }
 
 type PermAddressSubscriptionPayload {
@@ -931,60 +970,40 @@ input PermAddressSubscriptionWhereInput {
   NOT: [PermAddressSubscriptionWhereInput!]
 }
 
-input PermAddressUpdateDataInput {
-  address: String
-  city: String
-  state: String
-  zip_code: Int
-}
-
 input PermAddressUpdateInput {
   address: String
   city: String
   state: String
-  zip_code: Int
-}
-
-input PermAddressUpdateManyDataInput {
-  address: String
-  city: String
-  state: String
-  zip_code: Int
-}
-
-input PermAddressUpdateManyInput {
-  create: [PermAddressCreateInput!]
-  update: [PermAddressUpdateWithWhereUniqueNestedInput!]
-  upsert: [PermAddressUpsertWithWhereUniqueNestedInput!]
-  delete: [PermAddressWhereUniqueInput!]
-  connect: [PermAddressWhereUniqueInput!]
-  set: [PermAddressWhereUniqueInput!]
-  disconnect: [PermAddressWhereUniqueInput!]
-  deleteMany: [PermAddressScalarWhereInput!]
-  updateMany: [PermAddressUpdateManyWithWhereNestedInput!]
+  zip_code: String
+  createdBy: OwnerUpdateOneWithoutP_addressesInput
 }
 
 input PermAddressUpdateManyMutationInput {
   address: String
   city: String
   state: String
-  zip_code: Int
+  zip_code: String
 }
 
-input PermAddressUpdateManyWithWhereNestedInput {
-  where: PermAddressScalarWhereInput!
-  data: PermAddressUpdateManyDataInput!
+input PermAddressUpdateOneWithoutCreatedByInput {
+  create: PermAddressCreateWithoutCreatedByInput
+  update: PermAddressUpdateWithoutCreatedByDataInput
+  upsert: PermAddressUpsertWithoutCreatedByInput
+  delete: Boolean
+  disconnect: Boolean
+  connect: PermAddressWhereUniqueInput
 }
 
-input PermAddressUpdateWithWhereUniqueNestedInput {
-  where: PermAddressWhereUniqueInput!
-  data: PermAddressUpdateDataInput!
+input PermAddressUpdateWithoutCreatedByDataInput {
+  address: String
+  city: String
+  state: String
+  zip_code: String
 }
 
-input PermAddressUpsertWithWhereUniqueNestedInput {
-  where: PermAddressWhereUniqueInput!
-  update: PermAddressUpdateDataInput!
-  create: PermAddressCreateInput!
+input PermAddressUpsertWithoutCreatedByInput {
+  update: PermAddressUpdateWithoutCreatedByDataInput!
+  create: PermAddressCreateWithoutCreatedByInput!
 }
 
 input PermAddressWhereInput {
@@ -1044,14 +1063,21 @@ input PermAddressWhereInput {
   state_not_starts_with: String
   state_ends_with: String
   state_not_ends_with: String
-  zip_code: Int
-  zip_code_not: Int
-  zip_code_in: [Int!]
-  zip_code_not_in: [Int!]
-  zip_code_lt: Int
-  zip_code_lte: Int
-  zip_code_gt: Int
-  zip_code_gte: Int
+  zip_code: String
+  zip_code_not: String
+  zip_code_in: [String!]
+  zip_code_not_in: [String!]
+  zip_code_lt: String
+  zip_code_lte: String
+  zip_code_gt: String
+  zip_code_gte: String
+  zip_code_contains: String
+  zip_code_not_contains: String
+  zip_code_starts_with: String
+  zip_code_not_starts_with: String
+  zip_code_ends_with: String
+  zip_code_not_ends_with: String
+  createdBy: OwnerWhereInput
   AND: [PermAddressWhereInput!]
   OR: [PermAddressWhereInput!]
   NOT: [PermAddressWhereInput!]
@@ -1077,17 +1103,19 @@ type Query {
   site(where: SiteWhereUniqueInput!): Site
   sites(where: SiteWhereInput, orderBy: SiteOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Site]!
   sitesConnection(where: SiteWhereInput, orderBy: SiteOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): SiteConnection!
-  tLAddress(where: TLAddressWhereUniqueInput!): TLAddress
-  tLAddresses(where: TLAddressWhereInput, orderBy: TLAddressOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [TLAddress]!
-  tLAddressesConnection(where: TLAddressWhereInput, orderBy: TLAddressOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): TLAddressConnection!
   node(id: ID!): Node
 }
 
 type Site {
   id: ID!
+  site_number: Int!
+  tl_road_side: String!
+  tl_address: String!
+  land_company: String!
+  owners_association: String!
   trout_lake_water: Boolean!
-  tl_addresses(where: TLAddressWhereInput, orderBy: TLAddressOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [TLAddress!]
   owners(where: OwnerWhereInput, orderBy: OwnerOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Owner!]
+  site_phone_number: String
 }
 
 type SiteConnection {
@@ -1097,14 +1125,19 @@ type SiteConnection {
 }
 
 input SiteCreateInput {
+  site_number: Int!
+  tl_road_side: String!
+  tl_address: String!
+  land_company: String!
+  owners_association: String!
   trout_lake_water: Boolean!
-  tl_addresses: TLAddressCreateManyInput
   owners: OwnerCreateManyInput
+  site_phone_number: String
 }
 
-input SiteCreateManyInput {
-  create: [SiteCreateInput!]
-  connect: [SiteWhereUniqueInput!]
+input SiteCreateOneInput {
+  create: SiteCreateInput
+  connect: SiteWhereUniqueInput
 }
 
 type SiteEdge {
@@ -1115,35 +1148,31 @@ type SiteEdge {
 enum SiteOrderByInput {
   id_ASC
   id_DESC
+  site_number_ASC
+  site_number_DESC
+  tl_road_side_ASC
+  tl_road_side_DESC
+  tl_address_ASC
+  tl_address_DESC
+  land_company_ASC
+  land_company_DESC
+  owners_association_ASC
+  owners_association_DESC
   trout_lake_water_ASC
   trout_lake_water_DESC
+  site_phone_number_ASC
+  site_phone_number_DESC
 }
 
 type SitePreviousValues {
   id: ID!
+  site_number: Int!
+  tl_road_side: String!
+  tl_address: String!
+  land_company: String!
+  owners_association: String!
   trout_lake_water: Boolean!
-}
-
-input SiteScalarWhereInput {
-  id: ID
-  id_not: ID
-  id_in: [ID!]
-  id_not_in: [ID!]
-  id_lt: ID
-  id_lte: ID
-  id_gt: ID
-  id_gte: ID
-  id_contains: ID
-  id_not_contains: ID
-  id_starts_with: ID
-  id_not_starts_with: ID
-  id_ends_with: ID
-  id_not_ends_with: ID
-  trout_lake_water: Boolean
-  trout_lake_water_not: Boolean
-  AND: [SiteScalarWhereInput!]
-  OR: [SiteScalarWhereInput!]
-  NOT: [SiteScalarWhereInput!]
+  site_phone_number: String
 }
 
 type SiteSubscriptionPayload {
@@ -1165,49 +1194,47 @@ input SiteSubscriptionWhereInput {
 }
 
 input SiteUpdateDataInput {
+  site_number: Int
+  tl_road_side: String
+  tl_address: String
+  land_company: String
+  owners_association: String
   trout_lake_water: Boolean
-  tl_addresses: TLAddressUpdateManyInput
   owners: OwnerUpdateManyInput
+  site_phone_number: String
 }
 
 input SiteUpdateInput {
+  site_number: Int
+  tl_road_side: String
+  tl_address: String
+  land_company: String
+  owners_association: String
   trout_lake_water: Boolean
-  tl_addresses: TLAddressUpdateManyInput
   owners: OwnerUpdateManyInput
-}
-
-input SiteUpdateManyDataInput {
-  trout_lake_water: Boolean
-}
-
-input SiteUpdateManyInput {
-  create: [SiteCreateInput!]
-  update: [SiteUpdateWithWhereUniqueNestedInput!]
-  upsert: [SiteUpsertWithWhereUniqueNestedInput!]
-  delete: [SiteWhereUniqueInput!]
-  connect: [SiteWhereUniqueInput!]
-  set: [SiteWhereUniqueInput!]
-  disconnect: [SiteWhereUniqueInput!]
-  deleteMany: [SiteScalarWhereInput!]
-  updateMany: [SiteUpdateManyWithWhereNestedInput!]
+  site_phone_number: String
 }
 
 input SiteUpdateManyMutationInput {
+  site_number: Int
+  tl_road_side: String
+  tl_address: String
+  land_company: String
+  owners_association: String
   trout_lake_water: Boolean
+  site_phone_number: String
 }
 
-input SiteUpdateManyWithWhereNestedInput {
-  where: SiteScalarWhereInput!
-  data: SiteUpdateManyDataInput!
+input SiteUpdateOneInput {
+  create: SiteCreateInput
+  update: SiteUpdateDataInput
+  upsert: SiteUpsertNestedInput
+  delete: Boolean
+  disconnect: Boolean
+  connect: SiteWhereUniqueInput
 }
 
-input SiteUpdateWithWhereUniqueNestedInput {
-  where: SiteWhereUniqueInput!
-  data: SiteUpdateDataInput!
-}
-
-input SiteUpsertWithWhereUniqueNestedInput {
-  where: SiteWhereUniqueInput!
+input SiteUpsertNestedInput {
   update: SiteUpdateDataInput!
   create: SiteCreateInput!
 }
@@ -1227,14 +1254,89 @@ input SiteWhereInput {
   id_not_starts_with: ID
   id_ends_with: ID
   id_not_ends_with: ID
+  site_number: Int
+  site_number_not: Int
+  site_number_in: [Int!]
+  site_number_not_in: [Int!]
+  site_number_lt: Int
+  site_number_lte: Int
+  site_number_gt: Int
+  site_number_gte: Int
+  tl_road_side: String
+  tl_road_side_not: String
+  tl_road_side_in: [String!]
+  tl_road_side_not_in: [String!]
+  tl_road_side_lt: String
+  tl_road_side_lte: String
+  tl_road_side_gt: String
+  tl_road_side_gte: String
+  tl_road_side_contains: String
+  tl_road_side_not_contains: String
+  tl_road_side_starts_with: String
+  tl_road_side_not_starts_with: String
+  tl_road_side_ends_with: String
+  tl_road_side_not_ends_with: String
+  tl_address: String
+  tl_address_not: String
+  tl_address_in: [String!]
+  tl_address_not_in: [String!]
+  tl_address_lt: String
+  tl_address_lte: String
+  tl_address_gt: String
+  tl_address_gte: String
+  tl_address_contains: String
+  tl_address_not_contains: String
+  tl_address_starts_with: String
+  tl_address_not_starts_with: String
+  tl_address_ends_with: String
+  tl_address_not_ends_with: String
+  land_company: String
+  land_company_not: String
+  land_company_in: [String!]
+  land_company_not_in: [String!]
+  land_company_lt: String
+  land_company_lte: String
+  land_company_gt: String
+  land_company_gte: String
+  land_company_contains: String
+  land_company_not_contains: String
+  land_company_starts_with: String
+  land_company_not_starts_with: String
+  land_company_ends_with: String
+  land_company_not_ends_with: String
+  owners_association: String
+  owners_association_not: String
+  owners_association_in: [String!]
+  owners_association_not_in: [String!]
+  owners_association_lt: String
+  owners_association_lte: String
+  owners_association_gt: String
+  owners_association_gte: String
+  owners_association_contains: String
+  owners_association_not_contains: String
+  owners_association_starts_with: String
+  owners_association_not_starts_with: String
+  owners_association_ends_with: String
+  owners_association_not_ends_with: String
   trout_lake_water: Boolean
   trout_lake_water_not: Boolean
-  tl_addresses_every: TLAddressWhereInput
-  tl_addresses_some: TLAddressWhereInput
-  tl_addresses_none: TLAddressWhereInput
   owners_every: OwnerWhereInput
   owners_some: OwnerWhereInput
   owners_none: OwnerWhereInput
+  site_phone_number: String
+  site_phone_number_not: String
+  site_phone_number_in: [String!]
+  site_phone_number_not_in: [String!]
+  site_phone_number_lt: String
+  site_phone_number_lte: String
+  site_phone_number_gt: String
+  site_phone_number_gte: String
+  site_phone_number_contains: String
+  site_phone_number_not_contains: String
+  site_phone_number_starts_with: String
+  site_phone_number_not_starts_with: String
+  site_phone_number_ends_with: String
+  site_phone_number_not_ends_with: String
   AND: [SiteWhereInput!]
   OR: [SiteWhereInput!]
   NOT: [SiteWhereInput!]
@@ -1242,6 +1344,7 @@ input SiteWhereInput {
 
 input SiteWhereUniqueInput {
   id: ID
+  site_number: Int
 }
 
 type Subscription {
@@ -1250,277 +1353,6 @@ type Subscription {
   payment(where: PaymentSubscriptionWhereInput): PaymentSubscriptionPayload
   permAddress(where: PermAddressSubscriptionWhereInput): PermAddressSubscriptionPayload
   site(where: SiteSubscriptionWhereInput): SiteSubscriptionPayload
-  tLAddress(where: TLAddressSubscriptionWhereInput): TLAddressSubscriptionPayload
-}
-
-type TLAddress {
-  id: ID!
-  address: String!
-  city: String!
-  state: String!
-  zip_code: Int!
-}
-
-type TLAddressConnection {
-  pageInfo: PageInfo!
-  edges: [TLAddressEdge]!
-  aggregate: AggregateTLAddress!
-}
-
-input TLAddressCreateInput {
-  address: String!
-  city: String!
-  state: String!
-  zip_code: Int!
-}
-
-input TLAddressCreateManyInput {
-  create: [TLAddressCreateInput!]
-  connect: [TLAddressWhereUniqueInput!]
-}
-
-type TLAddressEdge {
-  node: TLAddress!
-  cursor: String!
-}
-
-enum TLAddressOrderByInput {
-  id_ASC
-  id_DESC
-  address_ASC
-  address_DESC
-  city_ASC
-  city_DESC
-  state_ASC
-  state_DESC
-  zip_code_ASC
-  zip_code_DESC
-}
-
-type TLAddressPreviousValues {
-  id: ID!
-  address: String!
-  city: String!
-  state: String!
-  zip_code: Int!
-}
-
-input TLAddressScalarWhereInput {
-  id: ID
-  id_not: ID
-  id_in: [ID!]
-  id_not_in: [ID!]
-  id_lt: ID
-  id_lte: ID
-  id_gt: ID
-  id_gte: ID
-  id_contains: ID
-  id_not_contains: ID
-  id_starts_with: ID
-  id_not_starts_with: ID
-  id_ends_with: ID
-  id_not_ends_with: ID
-  address: String
-  address_not: String
-  address_in: [String!]
-  address_not_in: [String!]
-  address_lt: String
-  address_lte: String
-  address_gt: String
-  address_gte: String
-  address_contains: String
-  address_not_contains: String
-  address_starts_with: String
-  address_not_starts_with: String
-  address_ends_with: String
-  address_not_ends_with: String
-  city: String
-  city_not: String
-  city_in: [String!]
-  city_not_in: [String!]
-  city_lt: String
-  city_lte: String
-  city_gt: String
-  city_gte: String
-  city_contains: String
-  city_not_contains: String
-  city_starts_with: String
-  city_not_starts_with: String
-  city_ends_with: String
-  city_not_ends_with: String
-  state: String
-  state_not: String
-  state_in: [String!]
-  state_not_in: [String!]
-  state_lt: String
-  state_lte: String
-  state_gt: String
-  state_gte: String
-  state_contains: String
-  state_not_contains: String
-  state_starts_with: String
-  state_not_starts_with: String
-  state_ends_with: String
-  state_not_ends_with: String
-  zip_code: Int
-  zip_code_not: Int
-  zip_code_in: [Int!]
-  zip_code_not_in: [Int!]
-  zip_code_lt: Int
-  zip_code_lte: Int
-  zip_code_gt: Int
-  zip_code_gte: Int
-  AND: [TLAddressScalarWhereInput!]
-  OR: [TLAddressScalarWhereInput!]
-  NOT: [TLAddressScalarWhereInput!]
-}
-
-type TLAddressSubscriptionPayload {
-  mutation: MutationType!
-  node: TLAddress
-  updatedFields: [String!]
-  previousValues: TLAddressPreviousValues
-}
-
-input TLAddressSubscriptionWhereInput {
-  mutation_in: [MutationType!]
-  updatedFields_contains: String
-  updatedFields_contains_every: [String!]
-  updatedFields_contains_some: [String!]
-  node: TLAddressWhereInput
-  AND: [TLAddressSubscriptionWhereInput!]
-  OR: [TLAddressSubscriptionWhereInput!]
-  NOT: [TLAddressSubscriptionWhereInput!]
-}
-
-input TLAddressUpdateDataInput {
-  address: String
-  city: String
-  state: String
-  zip_code: Int
-}
-
-input TLAddressUpdateInput {
-  address: String
-  city: String
-  state: String
-  zip_code: Int
-}
-
-input TLAddressUpdateManyDataInput {
-  address: String
-  city: String
-  state: String
-  zip_code: Int
-}
-
-input TLAddressUpdateManyInput {
-  create: [TLAddressCreateInput!]
-  update: [TLAddressUpdateWithWhereUniqueNestedInput!]
-  upsert: [TLAddressUpsertWithWhereUniqueNestedInput!]
-  delete: [TLAddressWhereUniqueInput!]
-  connect: [TLAddressWhereUniqueInput!]
-  set: [TLAddressWhereUniqueInput!]
-  disconnect: [TLAddressWhereUniqueInput!]
-  deleteMany: [TLAddressScalarWhereInput!]
-  updateMany: [TLAddressUpdateManyWithWhereNestedInput!]
-}
-
-input TLAddressUpdateManyMutationInput {
-  address: String
-  city: String
-  state: String
-  zip_code: Int
-}
-
-input TLAddressUpdateManyWithWhereNestedInput {
-  where: TLAddressScalarWhereInput!
-  data: TLAddressUpdateManyDataInput!
-}
-
-input TLAddressUpdateWithWhereUniqueNestedInput {
-  where: TLAddressWhereUniqueInput!
-  data: TLAddressUpdateDataInput!
-}
-
-input TLAddressUpsertWithWhereUniqueNestedInput {
-  where: TLAddressWhereUniqueInput!
-  update: TLAddressUpdateDataInput!
-  create: TLAddressCreateInput!
-}
-
-input TLAddressWhereInput {
-  id: ID
-  id_not: ID
-  id_in: [ID!]
-  id_not_in: [ID!]
-  id_lt: ID
-  id_lte: ID
-  id_gt: ID
-  id_gte: ID
-  id_contains: ID
-  id_not_contains: ID
-  id_starts_with: ID
-  id_not_starts_with: ID
-  id_ends_with: ID
-  id_not_ends_with: ID
-  address: String
-  address_not: String
-  address_in: [String!]
-  address_not_in: [String!]
-  address_lt: String
-  address_lte: String
-  address_gt: String
-  address_gte: String
-  address_contains: String
-  address_not_contains: String
-  address_starts_with: String
-  address_not_starts_with: String
-  address_ends_with: String
-  address_not_ends_with: String
-  city: String
-  city_not: String
-  city_in: [String!]
-  city_not_in: [String!]
-  city_lt: String
-  city_lte: String
-  city_gt: String
-  city_gte: String
-  city_contains: String
-  city_not_contains: String
-  city_starts_with: String
-  city_not_starts_with: String
-  city_ends_with: String
-  city_not_ends_with: String
-  state: String
-  state_not: String
-  state_in: [String!]
-  state_not_in: [String!]
-  state_lt: String
-  state_lte: String
-  state_gt: String
-  state_gte: String
-  state_contains: String
-  state_not_contains: String
-  state_starts_with: String
-  state_not_starts_with: String
-  state_ends_with: String
-  state_not_ends_with: String
-  zip_code: Int
-  zip_code_not: Int
-  zip_code_in: [Int!]
-  zip_code_not_in: [Int!]
-  zip_code_lt: Int
-  zip_code_lte: Int
-  zip_code_gt: Int
-  zip_code_gte: Int
-  AND: [TLAddressWhereInput!]
-  OR: [TLAddressWhereInput!]
-  NOT: [TLAddressWhereInput!]
-}
-
-input TLAddressWhereUniqueInput {
-  id: ID
 }
 `
       }

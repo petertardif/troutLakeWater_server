@@ -21,7 +21,6 @@ export interface Exists {
   payment: (where?: PaymentWhereInput) => Promise<boolean>;
   permAddress: (where?: PermAddressWhereInput) => Promise<boolean>;
   site: (where?: SiteWhereInput) => Promise<boolean>;
-  tLAddress: (where?: TLAddressWhereInput) => Promise<boolean>;
 }
 
 export interface Node {}
@@ -140,25 +139,6 @@ export interface Prisma {
     first?: Int;
     last?: Int;
   }) => SiteConnectionPromise;
-  tLAddress: (where: TLAddressWhereUniqueInput) => TLAddressNullablePromise;
-  tLAddresses: (args?: {
-    where?: TLAddressWhereInput;
-    orderBy?: TLAddressOrderByInput;
-    skip?: Int;
-    after?: String;
-    before?: String;
-    first?: Int;
-    last?: Int;
-  }) => FragmentableArray<TLAddress>;
-  tLAddressesConnection: (args?: {
-    where?: TLAddressWhereInput;
-    orderBy?: TLAddressOrderByInput;
-    skip?: Int;
-    after?: String;
-    before?: String;
-    first?: Int;
-    last?: Int;
-  }) => TLAddressConnectionPromise;
   node: (args: { id: ID_Output }) => Node;
 
   /**
@@ -247,22 +227,6 @@ export interface Prisma {
   }) => SitePromise;
   deleteSite: (where: SiteWhereUniqueInput) => SitePromise;
   deleteManySites: (where?: SiteWhereInput) => BatchPayloadPromise;
-  createTLAddress: (data: TLAddressCreateInput) => TLAddressPromise;
-  updateTLAddress: (args: {
-    data: TLAddressUpdateInput;
-    where: TLAddressWhereUniqueInput;
-  }) => TLAddressPromise;
-  updateManyTLAddresses: (args: {
-    data: TLAddressUpdateManyMutationInput;
-    where?: TLAddressWhereInput;
-  }) => BatchPayloadPromise;
-  upsertTLAddress: (args: {
-    where: TLAddressWhereUniqueInput;
-    create: TLAddressCreateInput;
-    update: TLAddressUpdateInput;
-  }) => TLAddressPromise;
-  deleteTLAddress: (where: TLAddressWhereUniqueInput) => TLAddressPromise;
-  deleteManyTLAddresses: (where?: TLAddressWhereInput) => BatchPayloadPromise;
 
   /**
    * Subscriptions
@@ -287,9 +251,6 @@ export interface Subscription {
   site: (
     where?: SiteSubscriptionWhereInput
   ) => SiteSubscriptionPayloadSubscription;
-  tLAddress: (
-    where?: TLAddressSubscriptionWhereInput
-  ) => TLAddressSubscriptionPayloadSubscription;
 }
 
 export interface ClientConstructor<T> {
@@ -308,24 +269,6 @@ export type BillOrderByInput =
   | "payment_due_ASC"
   | "payment_due_DESC";
 
-export type SiteOrderByInput =
-  | "id_ASC"
-  | "id_DESC"
-  | "trout_lake_water_ASC"
-  | "trout_lake_water_DESC";
-
-export type TLAddressOrderByInput =
-  | "id_ASC"
-  | "id_DESC"
-  | "address_ASC"
-  | "address_DESC"
-  | "city_ASC"
-  | "city_DESC"
-  | "state_ASC"
-  | "state_DESC"
-  | "zip_code_ASC"
-  | "zip_code_DESC";
-
 export type OwnerOrderByInput =
   | "id_ASC"
   | "id_DESC"
@@ -333,14 +276,28 @@ export type OwnerOrderByInput =
   | "last_name_DESC"
   | "first_name_ASC"
   | "first_name_DESC"
-  | "email_ASC"
-  | "email_DESC"
+  | "primary_email_ASC"
+  | "primary_email_DESC"
+  | "alt_email_ASC"
+  | "alt_email_DESC"
   | "password_ASC"
   | "password_DESC"
-  | "phone_number_ASC"
-  | "phone_number_DESC"
+  | "perm_phone_number_ASC"
+  | "perm_phone_number_DESC"
+  | "other_phone_number_ASC"
+  | "other_phone_number_DESC"
   | "updatedAt_ASC"
   | "updatedAt_DESC";
+
+export type PaymentOrderByInput =
+  | "id_ASC"
+  | "id_DESC"
+  | "paid_ASC"
+  | "paid_DESC"
+  | "payment_type_ASC"
+  | "payment_type_DESC"
+  | "date_paid_ASC"
+  | "date_paid_DESC";
 
 export type PermAddressOrderByInput =
   | "id_ASC"
@@ -354,15 +311,23 @@ export type PermAddressOrderByInput =
   | "zip_code_ASC"
   | "zip_code_DESC";
 
-export type PaymentOrderByInput =
+export type SiteOrderByInput =
   | "id_ASC"
   | "id_DESC"
-  | "paid_ASC"
-  | "paid_DESC"
-  | "payment_type_ASC"
-  | "payment_type_DESC"
-  | "date_paid_ASC"
-  | "date_paid_DESC";
+  | "site_number_ASC"
+  | "site_number_DESC"
+  | "tl_road_side_ASC"
+  | "tl_road_side_DESC"
+  | "tl_address_ASC"
+  | "tl_address_DESC"
+  | "land_company_ASC"
+  | "land_company_DESC"
+  | "owners_association_ASC"
+  | "owners_association_DESC"
+  | "trout_lake_water_ASC"
+  | "trout_lake_water_DESC"
+  | "site_phone_number_ASC"
+  | "site_phone_number_DESC";
 
 export type MutationType = "CREATED" | "UPDATED" | "DELETED";
 
@@ -402,9 +367,7 @@ export interface BillWhereInput {
   payment_due_lte?: Maybe<DateTimeInput>;
   payment_due_gt?: Maybe<DateTimeInput>;
   payment_due_gte?: Maybe<DateTimeInput>;
-  sites_every?: Maybe<SiteWhereInput>;
-  sites_some?: Maybe<SiteWhereInput>;
-  sites_none?: Maybe<SiteWhereInput>;
+  site?: Maybe<SiteWhereInput>;
   AND?: Maybe<BillWhereInput[] | BillWhereInput>;
   OR?: Maybe<BillWhereInput[] | BillWhereInput>;
   NOT?: Maybe<BillWhereInput[] | BillWhereInput>;
@@ -472,87 +435,92 @@ export interface SiteWhereInput {
   id_not_starts_with?: Maybe<ID_Input>;
   id_ends_with?: Maybe<ID_Input>;
   id_not_ends_with?: Maybe<ID_Input>;
+  site_number?: Maybe<Int>;
+  site_number_not?: Maybe<Int>;
+  site_number_in?: Maybe<Int[] | Int>;
+  site_number_not_in?: Maybe<Int[] | Int>;
+  site_number_lt?: Maybe<Int>;
+  site_number_lte?: Maybe<Int>;
+  site_number_gt?: Maybe<Int>;
+  site_number_gte?: Maybe<Int>;
+  tl_road_side?: Maybe<String>;
+  tl_road_side_not?: Maybe<String>;
+  tl_road_side_in?: Maybe<String[] | String>;
+  tl_road_side_not_in?: Maybe<String[] | String>;
+  tl_road_side_lt?: Maybe<String>;
+  tl_road_side_lte?: Maybe<String>;
+  tl_road_side_gt?: Maybe<String>;
+  tl_road_side_gte?: Maybe<String>;
+  tl_road_side_contains?: Maybe<String>;
+  tl_road_side_not_contains?: Maybe<String>;
+  tl_road_side_starts_with?: Maybe<String>;
+  tl_road_side_not_starts_with?: Maybe<String>;
+  tl_road_side_ends_with?: Maybe<String>;
+  tl_road_side_not_ends_with?: Maybe<String>;
+  tl_address?: Maybe<String>;
+  tl_address_not?: Maybe<String>;
+  tl_address_in?: Maybe<String[] | String>;
+  tl_address_not_in?: Maybe<String[] | String>;
+  tl_address_lt?: Maybe<String>;
+  tl_address_lte?: Maybe<String>;
+  tl_address_gt?: Maybe<String>;
+  tl_address_gte?: Maybe<String>;
+  tl_address_contains?: Maybe<String>;
+  tl_address_not_contains?: Maybe<String>;
+  tl_address_starts_with?: Maybe<String>;
+  tl_address_not_starts_with?: Maybe<String>;
+  tl_address_ends_with?: Maybe<String>;
+  tl_address_not_ends_with?: Maybe<String>;
+  land_company?: Maybe<String>;
+  land_company_not?: Maybe<String>;
+  land_company_in?: Maybe<String[] | String>;
+  land_company_not_in?: Maybe<String[] | String>;
+  land_company_lt?: Maybe<String>;
+  land_company_lte?: Maybe<String>;
+  land_company_gt?: Maybe<String>;
+  land_company_gte?: Maybe<String>;
+  land_company_contains?: Maybe<String>;
+  land_company_not_contains?: Maybe<String>;
+  land_company_starts_with?: Maybe<String>;
+  land_company_not_starts_with?: Maybe<String>;
+  land_company_ends_with?: Maybe<String>;
+  land_company_not_ends_with?: Maybe<String>;
+  owners_association?: Maybe<String>;
+  owners_association_not?: Maybe<String>;
+  owners_association_in?: Maybe<String[] | String>;
+  owners_association_not_in?: Maybe<String[] | String>;
+  owners_association_lt?: Maybe<String>;
+  owners_association_lte?: Maybe<String>;
+  owners_association_gt?: Maybe<String>;
+  owners_association_gte?: Maybe<String>;
+  owners_association_contains?: Maybe<String>;
+  owners_association_not_contains?: Maybe<String>;
+  owners_association_starts_with?: Maybe<String>;
+  owners_association_not_starts_with?: Maybe<String>;
+  owners_association_ends_with?: Maybe<String>;
+  owners_association_not_ends_with?: Maybe<String>;
   trout_lake_water?: Maybe<Boolean>;
   trout_lake_water_not?: Maybe<Boolean>;
-  tl_addresses_every?: Maybe<TLAddressWhereInput>;
-  tl_addresses_some?: Maybe<TLAddressWhereInput>;
-  tl_addresses_none?: Maybe<TLAddressWhereInput>;
   owners_every?: Maybe<OwnerWhereInput>;
   owners_some?: Maybe<OwnerWhereInput>;
   owners_none?: Maybe<OwnerWhereInput>;
+  site_phone_number?: Maybe<String>;
+  site_phone_number_not?: Maybe<String>;
+  site_phone_number_in?: Maybe<String[] | String>;
+  site_phone_number_not_in?: Maybe<String[] | String>;
+  site_phone_number_lt?: Maybe<String>;
+  site_phone_number_lte?: Maybe<String>;
+  site_phone_number_gt?: Maybe<String>;
+  site_phone_number_gte?: Maybe<String>;
+  site_phone_number_contains?: Maybe<String>;
+  site_phone_number_not_contains?: Maybe<String>;
+  site_phone_number_starts_with?: Maybe<String>;
+  site_phone_number_not_starts_with?: Maybe<String>;
+  site_phone_number_ends_with?: Maybe<String>;
+  site_phone_number_not_ends_with?: Maybe<String>;
   AND?: Maybe<SiteWhereInput[] | SiteWhereInput>;
   OR?: Maybe<SiteWhereInput[] | SiteWhereInput>;
   NOT?: Maybe<SiteWhereInput[] | SiteWhereInput>;
-}
-
-export interface TLAddressWhereInput {
-  id?: Maybe<ID_Input>;
-  id_not?: Maybe<ID_Input>;
-  id_in?: Maybe<ID_Input[] | ID_Input>;
-  id_not_in?: Maybe<ID_Input[] | ID_Input>;
-  id_lt?: Maybe<ID_Input>;
-  id_lte?: Maybe<ID_Input>;
-  id_gt?: Maybe<ID_Input>;
-  id_gte?: Maybe<ID_Input>;
-  id_contains?: Maybe<ID_Input>;
-  id_not_contains?: Maybe<ID_Input>;
-  id_starts_with?: Maybe<ID_Input>;
-  id_not_starts_with?: Maybe<ID_Input>;
-  id_ends_with?: Maybe<ID_Input>;
-  id_not_ends_with?: Maybe<ID_Input>;
-  address?: Maybe<String>;
-  address_not?: Maybe<String>;
-  address_in?: Maybe<String[] | String>;
-  address_not_in?: Maybe<String[] | String>;
-  address_lt?: Maybe<String>;
-  address_lte?: Maybe<String>;
-  address_gt?: Maybe<String>;
-  address_gte?: Maybe<String>;
-  address_contains?: Maybe<String>;
-  address_not_contains?: Maybe<String>;
-  address_starts_with?: Maybe<String>;
-  address_not_starts_with?: Maybe<String>;
-  address_ends_with?: Maybe<String>;
-  address_not_ends_with?: Maybe<String>;
-  city?: Maybe<String>;
-  city_not?: Maybe<String>;
-  city_in?: Maybe<String[] | String>;
-  city_not_in?: Maybe<String[] | String>;
-  city_lt?: Maybe<String>;
-  city_lte?: Maybe<String>;
-  city_gt?: Maybe<String>;
-  city_gte?: Maybe<String>;
-  city_contains?: Maybe<String>;
-  city_not_contains?: Maybe<String>;
-  city_starts_with?: Maybe<String>;
-  city_not_starts_with?: Maybe<String>;
-  city_ends_with?: Maybe<String>;
-  city_not_ends_with?: Maybe<String>;
-  state?: Maybe<String>;
-  state_not?: Maybe<String>;
-  state_in?: Maybe<String[] | String>;
-  state_not_in?: Maybe<String[] | String>;
-  state_lt?: Maybe<String>;
-  state_lte?: Maybe<String>;
-  state_gt?: Maybe<String>;
-  state_gte?: Maybe<String>;
-  state_contains?: Maybe<String>;
-  state_not_contains?: Maybe<String>;
-  state_starts_with?: Maybe<String>;
-  state_not_starts_with?: Maybe<String>;
-  state_ends_with?: Maybe<String>;
-  state_not_ends_with?: Maybe<String>;
-  zip_code?: Maybe<Int>;
-  zip_code_not?: Maybe<Int>;
-  zip_code_in?: Maybe<Int[] | Int>;
-  zip_code_not_in?: Maybe<Int[] | Int>;
-  zip_code_lt?: Maybe<Int>;
-  zip_code_lte?: Maybe<Int>;
-  zip_code_gt?: Maybe<Int>;
-  zip_code_gte?: Maybe<Int>;
-  AND?: Maybe<TLAddressWhereInput[] | TLAddressWhereInput>;
-  OR?: Maybe<TLAddressWhereInput[] | TLAddressWhereInput>;
-  NOT?: Maybe<TLAddressWhereInput[] | TLAddressWhereInput>;
 }
 
 export interface OwnerWhereInput {
@@ -598,20 +566,34 @@ export interface OwnerWhereInput {
   first_name_not_starts_with?: Maybe<String>;
   first_name_ends_with?: Maybe<String>;
   first_name_not_ends_with?: Maybe<String>;
-  email?: Maybe<String>;
-  email_not?: Maybe<String>;
-  email_in?: Maybe<String[] | String>;
-  email_not_in?: Maybe<String[] | String>;
-  email_lt?: Maybe<String>;
-  email_lte?: Maybe<String>;
-  email_gt?: Maybe<String>;
-  email_gte?: Maybe<String>;
-  email_contains?: Maybe<String>;
-  email_not_contains?: Maybe<String>;
-  email_starts_with?: Maybe<String>;
-  email_not_starts_with?: Maybe<String>;
-  email_ends_with?: Maybe<String>;
-  email_not_ends_with?: Maybe<String>;
+  primary_email?: Maybe<String>;
+  primary_email_not?: Maybe<String>;
+  primary_email_in?: Maybe<String[] | String>;
+  primary_email_not_in?: Maybe<String[] | String>;
+  primary_email_lt?: Maybe<String>;
+  primary_email_lte?: Maybe<String>;
+  primary_email_gt?: Maybe<String>;
+  primary_email_gte?: Maybe<String>;
+  primary_email_contains?: Maybe<String>;
+  primary_email_not_contains?: Maybe<String>;
+  primary_email_starts_with?: Maybe<String>;
+  primary_email_not_starts_with?: Maybe<String>;
+  primary_email_ends_with?: Maybe<String>;
+  primary_email_not_ends_with?: Maybe<String>;
+  alt_email?: Maybe<String>;
+  alt_email_not?: Maybe<String>;
+  alt_email_in?: Maybe<String[] | String>;
+  alt_email_not_in?: Maybe<String[] | String>;
+  alt_email_lt?: Maybe<String>;
+  alt_email_lte?: Maybe<String>;
+  alt_email_gt?: Maybe<String>;
+  alt_email_gte?: Maybe<String>;
+  alt_email_contains?: Maybe<String>;
+  alt_email_not_contains?: Maybe<String>;
+  alt_email_starts_with?: Maybe<String>;
+  alt_email_not_starts_with?: Maybe<String>;
+  alt_email_ends_with?: Maybe<String>;
+  alt_email_not_ends_with?: Maybe<String>;
   password?: Maybe<String>;
   password_not?: Maybe<String>;
   password_in?: Maybe<String[] | String>;
@@ -626,23 +608,35 @@ export interface OwnerWhereInput {
   password_not_starts_with?: Maybe<String>;
   password_ends_with?: Maybe<String>;
   password_not_ends_with?: Maybe<String>;
-  phone_number?: Maybe<String>;
-  phone_number_not?: Maybe<String>;
-  phone_number_in?: Maybe<String[] | String>;
-  phone_number_not_in?: Maybe<String[] | String>;
-  phone_number_lt?: Maybe<String>;
-  phone_number_lte?: Maybe<String>;
-  phone_number_gt?: Maybe<String>;
-  phone_number_gte?: Maybe<String>;
-  phone_number_contains?: Maybe<String>;
-  phone_number_not_contains?: Maybe<String>;
-  phone_number_starts_with?: Maybe<String>;
-  phone_number_not_starts_with?: Maybe<String>;
-  phone_number_ends_with?: Maybe<String>;
-  phone_number_not_ends_with?: Maybe<String>;
-  p_addresses_every?: Maybe<PermAddressWhereInput>;
-  p_addresses_some?: Maybe<PermAddressWhereInput>;
-  p_addresses_none?: Maybe<PermAddressWhereInput>;
+  perm_phone_number?: Maybe<String>;
+  perm_phone_number_not?: Maybe<String>;
+  perm_phone_number_in?: Maybe<String[] | String>;
+  perm_phone_number_not_in?: Maybe<String[] | String>;
+  perm_phone_number_lt?: Maybe<String>;
+  perm_phone_number_lte?: Maybe<String>;
+  perm_phone_number_gt?: Maybe<String>;
+  perm_phone_number_gte?: Maybe<String>;
+  perm_phone_number_contains?: Maybe<String>;
+  perm_phone_number_not_contains?: Maybe<String>;
+  perm_phone_number_starts_with?: Maybe<String>;
+  perm_phone_number_not_starts_with?: Maybe<String>;
+  perm_phone_number_ends_with?: Maybe<String>;
+  perm_phone_number_not_ends_with?: Maybe<String>;
+  other_phone_number?: Maybe<String>;
+  other_phone_number_not?: Maybe<String>;
+  other_phone_number_in?: Maybe<String[] | String>;
+  other_phone_number_not_in?: Maybe<String[] | String>;
+  other_phone_number_lt?: Maybe<String>;
+  other_phone_number_lte?: Maybe<String>;
+  other_phone_number_gt?: Maybe<String>;
+  other_phone_number_gte?: Maybe<String>;
+  other_phone_number_contains?: Maybe<String>;
+  other_phone_number_not_contains?: Maybe<String>;
+  other_phone_number_starts_with?: Maybe<String>;
+  other_phone_number_not_starts_with?: Maybe<String>;
+  other_phone_number_ends_with?: Maybe<String>;
+  other_phone_number_not_ends_with?: Maybe<String>;
+  p_addresses?: Maybe<PermAddressWhereInput>;
   updatedAt?: Maybe<DateTimeInput>;
   updatedAt_not?: Maybe<DateTimeInput>;
   updatedAt_in?: Maybe<DateTimeInput[] | DateTimeInput>;
@@ -713,14 +707,21 @@ export interface PermAddressWhereInput {
   state_not_starts_with?: Maybe<String>;
   state_ends_with?: Maybe<String>;
   state_not_ends_with?: Maybe<String>;
-  zip_code?: Maybe<Int>;
-  zip_code_not?: Maybe<Int>;
-  zip_code_in?: Maybe<Int[] | Int>;
-  zip_code_not_in?: Maybe<Int[] | Int>;
-  zip_code_lt?: Maybe<Int>;
-  zip_code_lte?: Maybe<Int>;
-  zip_code_gt?: Maybe<Int>;
-  zip_code_gte?: Maybe<Int>;
+  zip_code?: Maybe<String>;
+  zip_code_not?: Maybe<String>;
+  zip_code_in?: Maybe<String[] | String>;
+  zip_code_not_in?: Maybe<String[] | String>;
+  zip_code_lt?: Maybe<String>;
+  zip_code_lte?: Maybe<String>;
+  zip_code_gt?: Maybe<String>;
+  zip_code_gte?: Maybe<String>;
+  zip_code_contains?: Maybe<String>;
+  zip_code_not_contains?: Maybe<String>;
+  zip_code_starts_with?: Maybe<String>;
+  zip_code_not_starts_with?: Maybe<String>;
+  zip_code_ends_with?: Maybe<String>;
+  zip_code_not_ends_with?: Maybe<String>;
+  createdBy?: Maybe<OwnerWhereInput>;
   AND?: Maybe<PermAddressWhereInput[] | PermAddressWhereInput>;
   OR?: Maybe<PermAddressWhereInput[] | PermAddressWhereInput>;
   NOT?: Maybe<PermAddressWhereInput[] | PermAddressWhereInput>;
@@ -728,7 +729,8 @@ export interface PermAddressWhereInput {
 
 export type OwnerWhereUniqueInput = AtLeastOne<{
   id: Maybe<ID_Input>;
-  email?: Maybe<String>;
+  primary_email?: Maybe<String>;
+  alt_email?: Maybe<String>;
 }>;
 
 export type PaymentWhereUniqueInput = AtLeastOne<{
@@ -741,17 +743,14 @@ export type PermAddressWhereUniqueInput = AtLeastOne<{
 
 export type SiteWhereUniqueInput = AtLeastOne<{
   id: Maybe<ID_Input>;
-}>;
-
-export type TLAddressWhereUniqueInput = AtLeastOne<{
-  id: Maybe<ID_Input>;
+  site_number?: Maybe<Int>;
 }>;
 
 export interface BillCreateInput {
   year: Int;
   payment?: Maybe<PaymentCreateOneWithoutBillsInput>;
   payment_due: DateTimeInput;
-  sites?: Maybe<SiteCreateManyInput>;
+  site?: Maybe<SiteCreateOneInput>;
 }
 
 export interface PaymentCreateOneWithoutBillsInput {
@@ -764,27 +763,20 @@ export interface PaymentCreateWithoutBillsInput {
   payment_type: String;
 }
 
-export interface SiteCreateManyInput {
-  create?: Maybe<SiteCreateInput[] | SiteCreateInput>;
-  connect?: Maybe<SiteWhereUniqueInput[] | SiteWhereUniqueInput>;
+export interface SiteCreateOneInput {
+  create?: Maybe<SiteCreateInput>;
+  connect?: Maybe<SiteWhereUniqueInput>;
 }
 
 export interface SiteCreateInput {
+  site_number: Int;
+  tl_road_side: String;
+  tl_address: String;
+  land_company: String;
+  owners_association: String;
   trout_lake_water: Boolean;
-  tl_addresses?: Maybe<TLAddressCreateManyInput>;
   owners?: Maybe<OwnerCreateManyInput>;
-}
-
-export interface TLAddressCreateManyInput {
-  create?: Maybe<TLAddressCreateInput[] | TLAddressCreateInput>;
-  connect?: Maybe<TLAddressWhereUniqueInput[] | TLAddressWhereUniqueInput>;
-}
-
-export interface TLAddressCreateInput {
-  address: String;
-  city: String;
-  state: String;
-  zip_code: Int;
+  site_phone_number?: Maybe<String>;
 }
 
 export interface OwnerCreateManyInput {
@@ -795,29 +787,31 @@ export interface OwnerCreateManyInput {
 export interface OwnerCreateInput {
   last_name: String;
   first_name: String;
-  email: String;
+  primary_email: String;
+  alt_email?: Maybe<String>;
   password: String;
-  phone_number?: Maybe<String>;
-  p_addresses?: Maybe<PermAddressCreateManyInput>;
+  perm_phone_number?: Maybe<String>;
+  other_phone_number?: Maybe<String>;
+  p_addresses?: Maybe<PermAddressCreateOneWithoutCreatedByInput>;
 }
 
-export interface PermAddressCreateManyInput {
-  create?: Maybe<PermAddressCreateInput[] | PermAddressCreateInput>;
-  connect?: Maybe<PermAddressWhereUniqueInput[] | PermAddressWhereUniqueInput>;
+export interface PermAddressCreateOneWithoutCreatedByInput {
+  create?: Maybe<PermAddressCreateWithoutCreatedByInput>;
+  connect?: Maybe<PermAddressWhereUniqueInput>;
 }
 
-export interface PermAddressCreateInput {
+export interface PermAddressCreateWithoutCreatedByInput {
   address: String;
   city: String;
   state: String;
-  zip_code: Int;
+  zip_code: String;
 }
 
 export interface BillUpdateInput {
   year?: Maybe<Int>;
   payment?: Maybe<PaymentUpdateOneWithoutBillsInput>;
   payment_due?: Maybe<DateTimeInput>;
-  sites?: Maybe<SiteUpdateManyInput>;
+  site?: Maybe<SiteUpdateOneInput>;
 }
 
 export interface PaymentUpdateOneWithoutBillsInput {
@@ -839,156 +833,24 @@ export interface PaymentUpsertWithoutBillsInput {
   create: PaymentCreateWithoutBillsInput;
 }
 
-export interface SiteUpdateManyInput {
-  create?: Maybe<SiteCreateInput[] | SiteCreateInput>;
-  update?: Maybe<
-    | SiteUpdateWithWhereUniqueNestedInput[]
-    | SiteUpdateWithWhereUniqueNestedInput
-  >;
-  upsert?: Maybe<
-    | SiteUpsertWithWhereUniqueNestedInput[]
-    | SiteUpsertWithWhereUniqueNestedInput
-  >;
-  delete?: Maybe<SiteWhereUniqueInput[] | SiteWhereUniqueInput>;
-  connect?: Maybe<SiteWhereUniqueInput[] | SiteWhereUniqueInput>;
-  set?: Maybe<SiteWhereUniqueInput[] | SiteWhereUniqueInput>;
-  disconnect?: Maybe<SiteWhereUniqueInput[] | SiteWhereUniqueInput>;
-  deleteMany?: Maybe<SiteScalarWhereInput[] | SiteScalarWhereInput>;
-  updateMany?: Maybe<
-    SiteUpdateManyWithWhereNestedInput[] | SiteUpdateManyWithWhereNestedInput
-  >;
-}
-
-export interface SiteUpdateWithWhereUniqueNestedInput {
-  where: SiteWhereUniqueInput;
-  data: SiteUpdateDataInput;
+export interface SiteUpdateOneInput {
+  create?: Maybe<SiteCreateInput>;
+  update?: Maybe<SiteUpdateDataInput>;
+  upsert?: Maybe<SiteUpsertNestedInput>;
+  delete?: Maybe<Boolean>;
+  disconnect?: Maybe<Boolean>;
+  connect?: Maybe<SiteWhereUniqueInput>;
 }
 
 export interface SiteUpdateDataInput {
+  site_number?: Maybe<Int>;
+  tl_road_side?: Maybe<String>;
+  tl_address?: Maybe<String>;
+  land_company?: Maybe<String>;
+  owners_association?: Maybe<String>;
   trout_lake_water?: Maybe<Boolean>;
-  tl_addresses?: Maybe<TLAddressUpdateManyInput>;
   owners?: Maybe<OwnerUpdateManyInput>;
-}
-
-export interface TLAddressUpdateManyInput {
-  create?: Maybe<TLAddressCreateInput[] | TLAddressCreateInput>;
-  update?: Maybe<
-    | TLAddressUpdateWithWhereUniqueNestedInput[]
-    | TLAddressUpdateWithWhereUniqueNestedInput
-  >;
-  upsert?: Maybe<
-    | TLAddressUpsertWithWhereUniqueNestedInput[]
-    | TLAddressUpsertWithWhereUniqueNestedInput
-  >;
-  delete?: Maybe<TLAddressWhereUniqueInput[] | TLAddressWhereUniqueInput>;
-  connect?: Maybe<TLAddressWhereUniqueInput[] | TLAddressWhereUniqueInput>;
-  set?: Maybe<TLAddressWhereUniqueInput[] | TLAddressWhereUniqueInput>;
-  disconnect?: Maybe<TLAddressWhereUniqueInput[] | TLAddressWhereUniqueInput>;
-  deleteMany?: Maybe<TLAddressScalarWhereInput[] | TLAddressScalarWhereInput>;
-  updateMany?: Maybe<
-    | TLAddressUpdateManyWithWhereNestedInput[]
-    | TLAddressUpdateManyWithWhereNestedInput
-  >;
-}
-
-export interface TLAddressUpdateWithWhereUniqueNestedInput {
-  where: TLAddressWhereUniqueInput;
-  data: TLAddressUpdateDataInput;
-}
-
-export interface TLAddressUpdateDataInput {
-  address?: Maybe<String>;
-  city?: Maybe<String>;
-  state?: Maybe<String>;
-  zip_code?: Maybe<Int>;
-}
-
-export interface TLAddressUpsertWithWhereUniqueNestedInput {
-  where: TLAddressWhereUniqueInput;
-  update: TLAddressUpdateDataInput;
-  create: TLAddressCreateInput;
-}
-
-export interface TLAddressScalarWhereInput {
-  id?: Maybe<ID_Input>;
-  id_not?: Maybe<ID_Input>;
-  id_in?: Maybe<ID_Input[] | ID_Input>;
-  id_not_in?: Maybe<ID_Input[] | ID_Input>;
-  id_lt?: Maybe<ID_Input>;
-  id_lte?: Maybe<ID_Input>;
-  id_gt?: Maybe<ID_Input>;
-  id_gte?: Maybe<ID_Input>;
-  id_contains?: Maybe<ID_Input>;
-  id_not_contains?: Maybe<ID_Input>;
-  id_starts_with?: Maybe<ID_Input>;
-  id_not_starts_with?: Maybe<ID_Input>;
-  id_ends_with?: Maybe<ID_Input>;
-  id_not_ends_with?: Maybe<ID_Input>;
-  address?: Maybe<String>;
-  address_not?: Maybe<String>;
-  address_in?: Maybe<String[] | String>;
-  address_not_in?: Maybe<String[] | String>;
-  address_lt?: Maybe<String>;
-  address_lte?: Maybe<String>;
-  address_gt?: Maybe<String>;
-  address_gte?: Maybe<String>;
-  address_contains?: Maybe<String>;
-  address_not_contains?: Maybe<String>;
-  address_starts_with?: Maybe<String>;
-  address_not_starts_with?: Maybe<String>;
-  address_ends_with?: Maybe<String>;
-  address_not_ends_with?: Maybe<String>;
-  city?: Maybe<String>;
-  city_not?: Maybe<String>;
-  city_in?: Maybe<String[] | String>;
-  city_not_in?: Maybe<String[] | String>;
-  city_lt?: Maybe<String>;
-  city_lte?: Maybe<String>;
-  city_gt?: Maybe<String>;
-  city_gte?: Maybe<String>;
-  city_contains?: Maybe<String>;
-  city_not_contains?: Maybe<String>;
-  city_starts_with?: Maybe<String>;
-  city_not_starts_with?: Maybe<String>;
-  city_ends_with?: Maybe<String>;
-  city_not_ends_with?: Maybe<String>;
-  state?: Maybe<String>;
-  state_not?: Maybe<String>;
-  state_in?: Maybe<String[] | String>;
-  state_not_in?: Maybe<String[] | String>;
-  state_lt?: Maybe<String>;
-  state_lte?: Maybe<String>;
-  state_gt?: Maybe<String>;
-  state_gte?: Maybe<String>;
-  state_contains?: Maybe<String>;
-  state_not_contains?: Maybe<String>;
-  state_starts_with?: Maybe<String>;
-  state_not_starts_with?: Maybe<String>;
-  state_ends_with?: Maybe<String>;
-  state_not_ends_with?: Maybe<String>;
-  zip_code?: Maybe<Int>;
-  zip_code_not?: Maybe<Int>;
-  zip_code_in?: Maybe<Int[] | Int>;
-  zip_code_not_in?: Maybe<Int[] | Int>;
-  zip_code_lt?: Maybe<Int>;
-  zip_code_lte?: Maybe<Int>;
-  zip_code_gt?: Maybe<Int>;
-  zip_code_gte?: Maybe<Int>;
-  AND?: Maybe<TLAddressScalarWhereInput[] | TLAddressScalarWhereInput>;
-  OR?: Maybe<TLAddressScalarWhereInput[] | TLAddressScalarWhereInput>;
-  NOT?: Maybe<TLAddressScalarWhereInput[] | TLAddressScalarWhereInput>;
-}
-
-export interface TLAddressUpdateManyWithWhereNestedInput {
-  where: TLAddressScalarWhereInput;
-  data: TLAddressUpdateManyDataInput;
-}
-
-export interface TLAddressUpdateManyDataInput {
-  address?: Maybe<String>;
-  city?: Maybe<String>;
-  state?: Maybe<String>;
-  zip_code?: Maybe<Int>;
+  site_phone_number?: Maybe<String>;
 }
 
 export interface OwnerUpdateManyInput {
@@ -1019,135 +881,33 @@ export interface OwnerUpdateWithWhereUniqueNestedInput {
 export interface OwnerUpdateDataInput {
   last_name?: Maybe<String>;
   first_name?: Maybe<String>;
-  email?: Maybe<String>;
+  primary_email?: Maybe<String>;
+  alt_email?: Maybe<String>;
   password?: Maybe<String>;
-  phone_number?: Maybe<String>;
-  p_addresses?: Maybe<PermAddressUpdateManyInput>;
+  perm_phone_number?: Maybe<String>;
+  other_phone_number?: Maybe<String>;
+  p_addresses?: Maybe<PermAddressUpdateOneWithoutCreatedByInput>;
 }
 
-export interface PermAddressUpdateManyInput {
-  create?: Maybe<PermAddressCreateInput[] | PermAddressCreateInput>;
-  update?: Maybe<
-    | PermAddressUpdateWithWhereUniqueNestedInput[]
-    | PermAddressUpdateWithWhereUniqueNestedInput
-  >;
-  upsert?: Maybe<
-    | PermAddressUpsertWithWhereUniqueNestedInput[]
-    | PermAddressUpsertWithWhereUniqueNestedInput
-  >;
-  delete?: Maybe<PermAddressWhereUniqueInput[] | PermAddressWhereUniqueInput>;
-  connect?: Maybe<PermAddressWhereUniqueInput[] | PermAddressWhereUniqueInput>;
-  set?: Maybe<PermAddressWhereUniqueInput[] | PermAddressWhereUniqueInput>;
-  disconnect?: Maybe<
-    PermAddressWhereUniqueInput[] | PermAddressWhereUniqueInput
-  >;
-  deleteMany?: Maybe<
-    PermAddressScalarWhereInput[] | PermAddressScalarWhereInput
-  >;
-  updateMany?: Maybe<
-    | PermAddressUpdateManyWithWhereNestedInput[]
-    | PermAddressUpdateManyWithWhereNestedInput
-  >;
+export interface PermAddressUpdateOneWithoutCreatedByInput {
+  create?: Maybe<PermAddressCreateWithoutCreatedByInput>;
+  update?: Maybe<PermAddressUpdateWithoutCreatedByDataInput>;
+  upsert?: Maybe<PermAddressUpsertWithoutCreatedByInput>;
+  delete?: Maybe<Boolean>;
+  disconnect?: Maybe<Boolean>;
+  connect?: Maybe<PermAddressWhereUniqueInput>;
 }
 
-export interface PermAddressUpdateWithWhereUniqueNestedInput {
-  where: PermAddressWhereUniqueInput;
-  data: PermAddressUpdateDataInput;
-}
-
-export interface PermAddressUpdateDataInput {
+export interface PermAddressUpdateWithoutCreatedByDataInput {
   address?: Maybe<String>;
   city?: Maybe<String>;
   state?: Maybe<String>;
-  zip_code?: Maybe<Int>;
+  zip_code?: Maybe<String>;
 }
 
-export interface PermAddressUpsertWithWhereUniqueNestedInput {
-  where: PermAddressWhereUniqueInput;
-  update: PermAddressUpdateDataInput;
-  create: PermAddressCreateInput;
-}
-
-export interface PermAddressScalarWhereInput {
-  id?: Maybe<ID_Input>;
-  id_not?: Maybe<ID_Input>;
-  id_in?: Maybe<ID_Input[] | ID_Input>;
-  id_not_in?: Maybe<ID_Input[] | ID_Input>;
-  id_lt?: Maybe<ID_Input>;
-  id_lte?: Maybe<ID_Input>;
-  id_gt?: Maybe<ID_Input>;
-  id_gte?: Maybe<ID_Input>;
-  id_contains?: Maybe<ID_Input>;
-  id_not_contains?: Maybe<ID_Input>;
-  id_starts_with?: Maybe<ID_Input>;
-  id_not_starts_with?: Maybe<ID_Input>;
-  id_ends_with?: Maybe<ID_Input>;
-  id_not_ends_with?: Maybe<ID_Input>;
-  address?: Maybe<String>;
-  address_not?: Maybe<String>;
-  address_in?: Maybe<String[] | String>;
-  address_not_in?: Maybe<String[] | String>;
-  address_lt?: Maybe<String>;
-  address_lte?: Maybe<String>;
-  address_gt?: Maybe<String>;
-  address_gte?: Maybe<String>;
-  address_contains?: Maybe<String>;
-  address_not_contains?: Maybe<String>;
-  address_starts_with?: Maybe<String>;
-  address_not_starts_with?: Maybe<String>;
-  address_ends_with?: Maybe<String>;
-  address_not_ends_with?: Maybe<String>;
-  city?: Maybe<String>;
-  city_not?: Maybe<String>;
-  city_in?: Maybe<String[] | String>;
-  city_not_in?: Maybe<String[] | String>;
-  city_lt?: Maybe<String>;
-  city_lte?: Maybe<String>;
-  city_gt?: Maybe<String>;
-  city_gte?: Maybe<String>;
-  city_contains?: Maybe<String>;
-  city_not_contains?: Maybe<String>;
-  city_starts_with?: Maybe<String>;
-  city_not_starts_with?: Maybe<String>;
-  city_ends_with?: Maybe<String>;
-  city_not_ends_with?: Maybe<String>;
-  state?: Maybe<String>;
-  state_not?: Maybe<String>;
-  state_in?: Maybe<String[] | String>;
-  state_not_in?: Maybe<String[] | String>;
-  state_lt?: Maybe<String>;
-  state_lte?: Maybe<String>;
-  state_gt?: Maybe<String>;
-  state_gte?: Maybe<String>;
-  state_contains?: Maybe<String>;
-  state_not_contains?: Maybe<String>;
-  state_starts_with?: Maybe<String>;
-  state_not_starts_with?: Maybe<String>;
-  state_ends_with?: Maybe<String>;
-  state_not_ends_with?: Maybe<String>;
-  zip_code?: Maybe<Int>;
-  zip_code_not?: Maybe<Int>;
-  zip_code_in?: Maybe<Int[] | Int>;
-  zip_code_not_in?: Maybe<Int[] | Int>;
-  zip_code_lt?: Maybe<Int>;
-  zip_code_lte?: Maybe<Int>;
-  zip_code_gt?: Maybe<Int>;
-  zip_code_gte?: Maybe<Int>;
-  AND?: Maybe<PermAddressScalarWhereInput[] | PermAddressScalarWhereInput>;
-  OR?: Maybe<PermAddressScalarWhereInput[] | PermAddressScalarWhereInput>;
-  NOT?: Maybe<PermAddressScalarWhereInput[] | PermAddressScalarWhereInput>;
-}
-
-export interface PermAddressUpdateManyWithWhereNestedInput {
-  where: PermAddressScalarWhereInput;
-  data: PermAddressUpdateManyDataInput;
-}
-
-export interface PermAddressUpdateManyDataInput {
-  address?: Maybe<String>;
-  city?: Maybe<String>;
-  state?: Maybe<String>;
-  zip_code?: Maybe<Int>;
+export interface PermAddressUpsertWithoutCreatedByInput {
+  update: PermAddressUpdateWithoutCreatedByDataInput;
+  create: PermAddressCreateWithoutCreatedByInput;
 }
 
 export interface OwnerUpsertWithWhereUniqueNestedInput {
@@ -1199,20 +959,34 @@ export interface OwnerScalarWhereInput {
   first_name_not_starts_with?: Maybe<String>;
   first_name_ends_with?: Maybe<String>;
   first_name_not_ends_with?: Maybe<String>;
-  email?: Maybe<String>;
-  email_not?: Maybe<String>;
-  email_in?: Maybe<String[] | String>;
-  email_not_in?: Maybe<String[] | String>;
-  email_lt?: Maybe<String>;
-  email_lte?: Maybe<String>;
-  email_gt?: Maybe<String>;
-  email_gte?: Maybe<String>;
-  email_contains?: Maybe<String>;
-  email_not_contains?: Maybe<String>;
-  email_starts_with?: Maybe<String>;
-  email_not_starts_with?: Maybe<String>;
-  email_ends_with?: Maybe<String>;
-  email_not_ends_with?: Maybe<String>;
+  primary_email?: Maybe<String>;
+  primary_email_not?: Maybe<String>;
+  primary_email_in?: Maybe<String[] | String>;
+  primary_email_not_in?: Maybe<String[] | String>;
+  primary_email_lt?: Maybe<String>;
+  primary_email_lte?: Maybe<String>;
+  primary_email_gt?: Maybe<String>;
+  primary_email_gte?: Maybe<String>;
+  primary_email_contains?: Maybe<String>;
+  primary_email_not_contains?: Maybe<String>;
+  primary_email_starts_with?: Maybe<String>;
+  primary_email_not_starts_with?: Maybe<String>;
+  primary_email_ends_with?: Maybe<String>;
+  primary_email_not_ends_with?: Maybe<String>;
+  alt_email?: Maybe<String>;
+  alt_email_not?: Maybe<String>;
+  alt_email_in?: Maybe<String[] | String>;
+  alt_email_not_in?: Maybe<String[] | String>;
+  alt_email_lt?: Maybe<String>;
+  alt_email_lte?: Maybe<String>;
+  alt_email_gt?: Maybe<String>;
+  alt_email_gte?: Maybe<String>;
+  alt_email_contains?: Maybe<String>;
+  alt_email_not_contains?: Maybe<String>;
+  alt_email_starts_with?: Maybe<String>;
+  alt_email_not_starts_with?: Maybe<String>;
+  alt_email_ends_with?: Maybe<String>;
+  alt_email_not_ends_with?: Maybe<String>;
   password?: Maybe<String>;
   password_not?: Maybe<String>;
   password_in?: Maybe<String[] | String>;
@@ -1227,20 +1001,34 @@ export interface OwnerScalarWhereInput {
   password_not_starts_with?: Maybe<String>;
   password_ends_with?: Maybe<String>;
   password_not_ends_with?: Maybe<String>;
-  phone_number?: Maybe<String>;
-  phone_number_not?: Maybe<String>;
-  phone_number_in?: Maybe<String[] | String>;
-  phone_number_not_in?: Maybe<String[] | String>;
-  phone_number_lt?: Maybe<String>;
-  phone_number_lte?: Maybe<String>;
-  phone_number_gt?: Maybe<String>;
-  phone_number_gte?: Maybe<String>;
-  phone_number_contains?: Maybe<String>;
-  phone_number_not_contains?: Maybe<String>;
-  phone_number_starts_with?: Maybe<String>;
-  phone_number_not_starts_with?: Maybe<String>;
-  phone_number_ends_with?: Maybe<String>;
-  phone_number_not_ends_with?: Maybe<String>;
+  perm_phone_number?: Maybe<String>;
+  perm_phone_number_not?: Maybe<String>;
+  perm_phone_number_in?: Maybe<String[] | String>;
+  perm_phone_number_not_in?: Maybe<String[] | String>;
+  perm_phone_number_lt?: Maybe<String>;
+  perm_phone_number_lte?: Maybe<String>;
+  perm_phone_number_gt?: Maybe<String>;
+  perm_phone_number_gte?: Maybe<String>;
+  perm_phone_number_contains?: Maybe<String>;
+  perm_phone_number_not_contains?: Maybe<String>;
+  perm_phone_number_starts_with?: Maybe<String>;
+  perm_phone_number_not_starts_with?: Maybe<String>;
+  perm_phone_number_ends_with?: Maybe<String>;
+  perm_phone_number_not_ends_with?: Maybe<String>;
+  other_phone_number?: Maybe<String>;
+  other_phone_number_not?: Maybe<String>;
+  other_phone_number_in?: Maybe<String[] | String>;
+  other_phone_number_not_in?: Maybe<String[] | String>;
+  other_phone_number_lt?: Maybe<String>;
+  other_phone_number_lte?: Maybe<String>;
+  other_phone_number_gt?: Maybe<String>;
+  other_phone_number_gte?: Maybe<String>;
+  other_phone_number_contains?: Maybe<String>;
+  other_phone_number_not_contains?: Maybe<String>;
+  other_phone_number_starts_with?: Maybe<String>;
+  other_phone_number_not_starts_with?: Maybe<String>;
+  other_phone_number_ends_with?: Maybe<String>;
+  other_phone_number_not_ends_with?: Maybe<String>;
   updatedAt?: Maybe<DateTimeInput>;
   updatedAt_not?: Maybe<DateTimeInput>;
   updatedAt_in?: Maybe<DateTimeInput[] | DateTimeInput>;
@@ -1262,46 +1050,16 @@ export interface OwnerUpdateManyWithWhereNestedInput {
 export interface OwnerUpdateManyDataInput {
   last_name?: Maybe<String>;
   first_name?: Maybe<String>;
-  email?: Maybe<String>;
+  primary_email?: Maybe<String>;
+  alt_email?: Maybe<String>;
   password?: Maybe<String>;
-  phone_number?: Maybe<String>;
+  perm_phone_number?: Maybe<String>;
+  other_phone_number?: Maybe<String>;
 }
 
-export interface SiteUpsertWithWhereUniqueNestedInput {
-  where: SiteWhereUniqueInput;
+export interface SiteUpsertNestedInput {
   update: SiteUpdateDataInput;
   create: SiteCreateInput;
-}
-
-export interface SiteScalarWhereInput {
-  id?: Maybe<ID_Input>;
-  id_not?: Maybe<ID_Input>;
-  id_in?: Maybe<ID_Input[] | ID_Input>;
-  id_not_in?: Maybe<ID_Input[] | ID_Input>;
-  id_lt?: Maybe<ID_Input>;
-  id_lte?: Maybe<ID_Input>;
-  id_gt?: Maybe<ID_Input>;
-  id_gte?: Maybe<ID_Input>;
-  id_contains?: Maybe<ID_Input>;
-  id_not_contains?: Maybe<ID_Input>;
-  id_starts_with?: Maybe<ID_Input>;
-  id_not_starts_with?: Maybe<ID_Input>;
-  id_ends_with?: Maybe<ID_Input>;
-  id_not_ends_with?: Maybe<ID_Input>;
-  trout_lake_water?: Maybe<Boolean>;
-  trout_lake_water_not?: Maybe<Boolean>;
-  AND?: Maybe<SiteScalarWhereInput[] | SiteScalarWhereInput>;
-  OR?: Maybe<SiteScalarWhereInput[] | SiteScalarWhereInput>;
-  NOT?: Maybe<SiteScalarWhereInput[] | SiteScalarWhereInput>;
-}
-
-export interface SiteUpdateManyWithWhereNestedInput {
-  where: SiteScalarWhereInput;
-  data: SiteUpdateManyDataInput;
-}
-
-export interface SiteUpdateManyDataInput {
-  trout_lake_water?: Maybe<Boolean>;
 }
 
 export interface BillUpdateManyMutationInput {
@@ -1312,18 +1070,22 @@ export interface BillUpdateManyMutationInput {
 export interface OwnerUpdateInput {
   last_name?: Maybe<String>;
   first_name?: Maybe<String>;
-  email?: Maybe<String>;
+  primary_email?: Maybe<String>;
+  alt_email?: Maybe<String>;
   password?: Maybe<String>;
-  phone_number?: Maybe<String>;
-  p_addresses?: Maybe<PermAddressUpdateManyInput>;
+  perm_phone_number?: Maybe<String>;
+  other_phone_number?: Maybe<String>;
+  p_addresses?: Maybe<PermAddressUpdateOneWithoutCreatedByInput>;
 }
 
 export interface OwnerUpdateManyMutationInput {
   last_name?: Maybe<String>;
   first_name?: Maybe<String>;
-  email?: Maybe<String>;
+  primary_email?: Maybe<String>;
+  alt_email?: Maybe<String>;
   password?: Maybe<String>;
-  phone_number?: Maybe<String>;
+  perm_phone_number?: Maybe<String>;
+  other_phone_number?: Maybe<String>;
 }
 
 export interface PaymentCreateInput {
@@ -1342,7 +1104,7 @@ export interface BillCreateManyWithoutPaymentInput {
 export interface BillCreateWithoutPaymentInput {
   year: Int;
   payment_due: DateTimeInput;
-  sites?: Maybe<SiteCreateManyInput>;
+  site?: Maybe<SiteCreateOneInput>;
 }
 
 export interface PaymentUpdateInput {
@@ -1381,7 +1143,7 @@ export interface BillUpdateWithWhereUniqueWithoutPaymentInput {
 export interface BillUpdateWithoutPaymentDataInput {
   year?: Maybe<Int>;
   payment_due?: Maybe<DateTimeInput>;
-  sites?: Maybe<SiteUpdateManyInput>;
+  site?: Maybe<SiteUpdateOneInput>;
 }
 
 export interface BillUpsertWithWhereUniqueWithoutPaymentInput {
@@ -1441,42 +1203,87 @@ export interface PaymentUpdateManyMutationInput {
   payment_type?: Maybe<String>;
 }
 
+export interface PermAddressCreateInput {
+  address: String;
+  city: String;
+  state: String;
+  zip_code: String;
+  createdBy?: Maybe<OwnerCreateOneWithoutP_addressesInput>;
+}
+
+export interface OwnerCreateOneWithoutP_addressesInput {
+  create?: Maybe<OwnerCreateWithoutP_addressesInput>;
+  connect?: Maybe<OwnerWhereUniqueInput>;
+}
+
+export interface OwnerCreateWithoutP_addressesInput {
+  last_name: String;
+  first_name: String;
+  primary_email: String;
+  alt_email?: Maybe<String>;
+  password: String;
+  perm_phone_number?: Maybe<String>;
+  other_phone_number?: Maybe<String>;
+}
+
 export interface PermAddressUpdateInput {
   address?: Maybe<String>;
   city?: Maybe<String>;
   state?: Maybe<String>;
-  zip_code?: Maybe<Int>;
+  zip_code?: Maybe<String>;
+  createdBy?: Maybe<OwnerUpdateOneWithoutP_addressesInput>;
+}
+
+export interface OwnerUpdateOneWithoutP_addressesInput {
+  create?: Maybe<OwnerCreateWithoutP_addressesInput>;
+  update?: Maybe<OwnerUpdateWithoutP_addressesDataInput>;
+  upsert?: Maybe<OwnerUpsertWithoutP_addressesInput>;
+  delete?: Maybe<Boolean>;
+  disconnect?: Maybe<Boolean>;
+  connect?: Maybe<OwnerWhereUniqueInput>;
+}
+
+export interface OwnerUpdateWithoutP_addressesDataInput {
+  last_name?: Maybe<String>;
+  first_name?: Maybe<String>;
+  primary_email?: Maybe<String>;
+  alt_email?: Maybe<String>;
+  password?: Maybe<String>;
+  perm_phone_number?: Maybe<String>;
+  other_phone_number?: Maybe<String>;
+}
+
+export interface OwnerUpsertWithoutP_addressesInput {
+  update: OwnerUpdateWithoutP_addressesDataInput;
+  create: OwnerCreateWithoutP_addressesInput;
 }
 
 export interface PermAddressUpdateManyMutationInput {
   address?: Maybe<String>;
   city?: Maybe<String>;
   state?: Maybe<String>;
-  zip_code?: Maybe<Int>;
+  zip_code?: Maybe<String>;
 }
 
 export interface SiteUpdateInput {
+  site_number?: Maybe<Int>;
+  tl_road_side?: Maybe<String>;
+  tl_address?: Maybe<String>;
+  land_company?: Maybe<String>;
+  owners_association?: Maybe<String>;
   trout_lake_water?: Maybe<Boolean>;
-  tl_addresses?: Maybe<TLAddressUpdateManyInput>;
   owners?: Maybe<OwnerUpdateManyInput>;
+  site_phone_number?: Maybe<String>;
 }
 
 export interface SiteUpdateManyMutationInput {
+  site_number?: Maybe<Int>;
+  tl_road_side?: Maybe<String>;
+  tl_address?: Maybe<String>;
+  land_company?: Maybe<String>;
+  owners_association?: Maybe<String>;
   trout_lake_water?: Maybe<Boolean>;
-}
-
-export interface TLAddressUpdateInput {
-  address?: Maybe<String>;
-  city?: Maybe<String>;
-  state?: Maybe<String>;
-  zip_code?: Maybe<Int>;
-}
-
-export interface TLAddressUpdateManyMutationInput {
-  address?: Maybe<String>;
-  city?: Maybe<String>;
-  state?: Maybe<String>;
-  zip_code?: Maybe<Int>;
+  site_phone_number?: Maybe<String>;
 }
 
 export interface BillSubscriptionWhereInput {
@@ -1540,23 +1347,6 @@ export interface SiteSubscriptionWhereInput {
   NOT?: Maybe<SiteSubscriptionWhereInput[] | SiteSubscriptionWhereInput>;
 }
 
-export interface TLAddressSubscriptionWhereInput {
-  mutation_in?: Maybe<MutationType[] | MutationType>;
-  updatedFields_contains?: Maybe<String>;
-  updatedFields_contains_every?: Maybe<String[] | String>;
-  updatedFields_contains_some?: Maybe<String[] | String>;
-  node?: Maybe<TLAddressWhereInput>;
-  AND?: Maybe<
-    TLAddressSubscriptionWhereInput[] | TLAddressSubscriptionWhereInput
-  >;
-  OR?: Maybe<
-    TLAddressSubscriptionWhereInput[] | TLAddressSubscriptionWhereInput
-  >;
-  NOT?: Maybe<
-    TLAddressSubscriptionWhereInput[] | TLAddressSubscriptionWhereInput
-  >;
-}
-
 export interface NodeNode {
   id: ID_Output;
 }
@@ -1572,15 +1362,7 @@ export interface BillPromise extends Promise<Bill>, Fragmentable {
   year: () => Promise<Int>;
   payment: <T = PaymentPromise>() => T;
   payment_due: () => Promise<DateTimeOutput>;
-  sites: <T = FragmentableArray<Site>>(args?: {
-    where?: SiteWhereInput;
-    orderBy?: SiteOrderByInput;
-    skip?: Int;
-    after?: String;
-    before?: String;
-    first?: Int;
-    last?: Int;
-  }) => T;
+  site: <T = SitePromise>() => T;
 }
 
 export interface BillSubscription
@@ -1590,15 +1372,7 @@ export interface BillSubscription
   year: () => Promise<AsyncIterator<Int>>;
   payment: <T = PaymentSubscription>() => T;
   payment_due: () => Promise<AsyncIterator<DateTimeOutput>>;
-  sites: <T = Promise<AsyncIterator<SiteSubscription>>>(args?: {
-    where?: SiteWhereInput;
-    orderBy?: SiteOrderByInput;
-    skip?: Int;
-    after?: String;
-    before?: String;
-    first?: Int;
-    last?: Int;
-  }) => T;
+  site: <T = SiteSubscription>() => T;
 }
 
 export interface BillNullablePromise
@@ -1608,15 +1382,7 @@ export interface BillNullablePromise
   year: () => Promise<Int>;
   payment: <T = PaymentPromise>() => T;
   payment_due: () => Promise<DateTimeOutput>;
-  sites: <T = FragmentableArray<Site>>(args?: {
-    where?: SiteWhereInput;
-    orderBy?: SiteOrderByInput;
-    skip?: Int;
-    after?: String;
-    before?: String;
-    first?: Int;
-    last?: Int;
-  }) => T;
+  site: <T = SitePromise>() => T;
 }
 
 export interface Payment {
@@ -1680,21 +1446,23 @@ export interface PaymentNullablePromise
 
 export interface Site {
   id: ID_Output;
+  site_number: Int;
+  tl_road_side: String;
+  tl_address: String;
+  land_company: String;
+  owners_association: String;
   trout_lake_water: Boolean;
+  site_phone_number?: String;
 }
 
 export interface SitePromise extends Promise<Site>, Fragmentable {
   id: () => Promise<ID_Output>;
+  site_number: () => Promise<Int>;
+  tl_road_side: () => Promise<String>;
+  tl_address: () => Promise<String>;
+  land_company: () => Promise<String>;
+  owners_association: () => Promise<String>;
   trout_lake_water: () => Promise<Boolean>;
-  tl_addresses: <T = FragmentableArray<TLAddress>>(args?: {
-    where?: TLAddressWhereInput;
-    orderBy?: TLAddressOrderByInput;
-    skip?: Int;
-    after?: String;
-    before?: String;
-    first?: Int;
-    last?: Int;
-  }) => T;
   owners: <T = FragmentableArray<Owner>>(args?: {
     where?: OwnerWhereInput;
     orderBy?: OwnerOrderByInput;
@@ -1704,22 +1472,19 @@ export interface SitePromise extends Promise<Site>, Fragmentable {
     first?: Int;
     last?: Int;
   }) => T;
+  site_phone_number: () => Promise<String>;
 }
 
 export interface SiteSubscription
   extends Promise<AsyncIterator<Site>>,
     Fragmentable {
   id: () => Promise<AsyncIterator<ID_Output>>;
+  site_number: () => Promise<AsyncIterator<Int>>;
+  tl_road_side: () => Promise<AsyncIterator<String>>;
+  tl_address: () => Promise<AsyncIterator<String>>;
+  land_company: () => Promise<AsyncIterator<String>>;
+  owners_association: () => Promise<AsyncIterator<String>>;
   trout_lake_water: () => Promise<AsyncIterator<Boolean>>;
-  tl_addresses: <T = Promise<AsyncIterator<TLAddressSubscription>>>(args?: {
-    where?: TLAddressWhereInput;
-    orderBy?: TLAddressOrderByInput;
-    skip?: Int;
-    after?: String;
-    before?: String;
-    first?: Int;
-    last?: Int;
-  }) => T;
   owners: <T = Promise<AsyncIterator<OwnerSubscription>>>(args?: {
     where?: OwnerWhereInput;
     orderBy?: OwnerOrderByInput;
@@ -1729,22 +1494,19 @@ export interface SiteSubscription
     first?: Int;
     last?: Int;
   }) => T;
+  site_phone_number: () => Promise<AsyncIterator<String>>;
 }
 
 export interface SiteNullablePromise
   extends Promise<Site | null>,
     Fragmentable {
   id: () => Promise<ID_Output>;
+  site_number: () => Promise<Int>;
+  tl_road_side: () => Promise<String>;
+  tl_address: () => Promise<String>;
+  land_company: () => Promise<String>;
+  owners_association: () => Promise<String>;
   trout_lake_water: () => Promise<Boolean>;
-  tl_addresses: <T = FragmentableArray<TLAddress>>(args?: {
-    where?: TLAddressWhereInput;
-    orderBy?: TLAddressOrderByInput;
-    skip?: Int;
-    after?: String;
-    before?: String;
-    first?: Int;
-    last?: Int;
-  }) => T;
   owners: <T = FragmentableArray<Owner>>(args?: {
     where?: OwnerWhereInput;
     orderBy?: OwnerOrderByInput;
@@ -1754,51 +1516,18 @@ export interface SiteNullablePromise
     first?: Int;
     last?: Int;
   }) => T;
-}
-
-export interface TLAddress {
-  id: ID_Output;
-  address: String;
-  city: String;
-  state: String;
-  zip_code: Int;
-}
-
-export interface TLAddressPromise extends Promise<TLAddress>, Fragmentable {
-  id: () => Promise<ID_Output>;
-  address: () => Promise<String>;
-  city: () => Promise<String>;
-  state: () => Promise<String>;
-  zip_code: () => Promise<Int>;
-}
-
-export interface TLAddressSubscription
-  extends Promise<AsyncIterator<TLAddress>>,
-    Fragmentable {
-  id: () => Promise<AsyncIterator<ID_Output>>;
-  address: () => Promise<AsyncIterator<String>>;
-  city: () => Promise<AsyncIterator<String>>;
-  state: () => Promise<AsyncIterator<String>>;
-  zip_code: () => Promise<AsyncIterator<Int>>;
-}
-
-export interface TLAddressNullablePromise
-  extends Promise<TLAddress | null>,
-    Fragmentable {
-  id: () => Promise<ID_Output>;
-  address: () => Promise<String>;
-  city: () => Promise<String>;
-  state: () => Promise<String>;
-  zip_code: () => Promise<Int>;
+  site_phone_number: () => Promise<String>;
 }
 
 export interface Owner {
   id: ID_Output;
   last_name: String;
   first_name: String;
-  email: String;
+  primary_email: String;
+  alt_email?: String;
   password: String;
-  phone_number?: String;
+  perm_phone_number?: String;
+  other_phone_number?: String;
   updatedAt: DateTimeOutput;
 }
 
@@ -1806,18 +1535,12 @@ export interface OwnerPromise extends Promise<Owner>, Fragmentable {
   id: () => Promise<ID_Output>;
   last_name: () => Promise<String>;
   first_name: () => Promise<String>;
-  email: () => Promise<String>;
+  primary_email: () => Promise<String>;
+  alt_email: () => Promise<String>;
   password: () => Promise<String>;
-  phone_number: () => Promise<String>;
-  p_addresses: <T = FragmentableArray<PermAddress>>(args?: {
-    where?: PermAddressWhereInput;
-    orderBy?: PermAddressOrderByInput;
-    skip?: Int;
-    after?: String;
-    before?: String;
-    first?: Int;
-    last?: Int;
-  }) => T;
+  perm_phone_number: () => Promise<String>;
+  other_phone_number: () => Promise<String>;
+  p_addresses: <T = PermAddressPromise>() => T;
   updatedAt: () => Promise<DateTimeOutput>;
 }
 
@@ -1827,18 +1550,12 @@ export interface OwnerSubscription
   id: () => Promise<AsyncIterator<ID_Output>>;
   last_name: () => Promise<AsyncIterator<String>>;
   first_name: () => Promise<AsyncIterator<String>>;
-  email: () => Promise<AsyncIterator<String>>;
+  primary_email: () => Promise<AsyncIterator<String>>;
+  alt_email: () => Promise<AsyncIterator<String>>;
   password: () => Promise<AsyncIterator<String>>;
-  phone_number: () => Promise<AsyncIterator<String>>;
-  p_addresses: <T = Promise<AsyncIterator<PermAddressSubscription>>>(args?: {
-    where?: PermAddressWhereInput;
-    orderBy?: PermAddressOrderByInput;
-    skip?: Int;
-    after?: String;
-    before?: String;
-    first?: Int;
-    last?: Int;
-  }) => T;
+  perm_phone_number: () => Promise<AsyncIterator<String>>;
+  other_phone_number: () => Promise<AsyncIterator<String>>;
+  p_addresses: <T = PermAddressSubscription>() => T;
   updatedAt: () => Promise<AsyncIterator<DateTimeOutput>>;
 }
 
@@ -1848,18 +1565,12 @@ export interface OwnerNullablePromise
   id: () => Promise<ID_Output>;
   last_name: () => Promise<String>;
   first_name: () => Promise<String>;
-  email: () => Promise<String>;
+  primary_email: () => Promise<String>;
+  alt_email: () => Promise<String>;
   password: () => Promise<String>;
-  phone_number: () => Promise<String>;
-  p_addresses: <T = FragmentableArray<PermAddress>>(args?: {
-    where?: PermAddressWhereInput;
-    orderBy?: PermAddressOrderByInput;
-    skip?: Int;
-    after?: String;
-    before?: String;
-    first?: Int;
-    last?: Int;
-  }) => T;
+  perm_phone_number: () => Promise<String>;
+  other_phone_number: () => Promise<String>;
+  p_addresses: <T = PermAddressPromise>() => T;
   updatedAt: () => Promise<DateTimeOutput>;
 }
 
@@ -1868,7 +1579,7 @@ export interface PermAddress {
   address: String;
   city: String;
   state: String;
-  zip_code: Int;
+  zip_code: String;
 }
 
 export interface PermAddressPromise extends Promise<PermAddress>, Fragmentable {
@@ -1876,7 +1587,8 @@ export interface PermAddressPromise extends Promise<PermAddress>, Fragmentable {
   address: () => Promise<String>;
   city: () => Promise<String>;
   state: () => Promise<String>;
-  zip_code: () => Promise<Int>;
+  zip_code: () => Promise<String>;
+  createdBy: <T = OwnerPromise>() => T;
 }
 
 export interface PermAddressSubscription
@@ -1886,7 +1598,8 @@ export interface PermAddressSubscription
   address: () => Promise<AsyncIterator<String>>;
   city: () => Promise<AsyncIterator<String>>;
   state: () => Promise<AsyncIterator<String>>;
-  zip_code: () => Promise<AsyncIterator<Int>>;
+  zip_code: () => Promise<AsyncIterator<String>>;
+  createdBy: <T = OwnerSubscription>() => T;
 }
 
 export interface PermAddressNullablePromise
@@ -1896,7 +1609,8 @@ export interface PermAddressNullablePromise
   address: () => Promise<String>;
   city: () => Promise<String>;
   state: () => Promise<String>;
-  zip_code: () => Promise<Int>;
+  zip_code: () => Promise<String>;
+  createdBy: <T = OwnerPromise>() => T;
 }
 
 export interface BillConnection {
@@ -2194,62 +1908,6 @@ export interface AggregateSiteSubscription
   count: () => Promise<AsyncIterator<Int>>;
 }
 
-export interface TLAddressConnection {
-  pageInfo: PageInfo;
-  edges: TLAddressEdge[];
-}
-
-export interface TLAddressConnectionPromise
-  extends Promise<TLAddressConnection>,
-    Fragmentable {
-  pageInfo: <T = PageInfoPromise>() => T;
-  edges: <T = FragmentableArray<TLAddressEdge>>() => T;
-  aggregate: <T = AggregateTLAddressPromise>() => T;
-}
-
-export interface TLAddressConnectionSubscription
-  extends Promise<AsyncIterator<TLAddressConnection>>,
-    Fragmentable {
-  pageInfo: <T = PageInfoSubscription>() => T;
-  edges: <T = Promise<AsyncIterator<TLAddressEdgeSubscription>>>() => T;
-  aggregate: <T = AggregateTLAddressSubscription>() => T;
-}
-
-export interface TLAddressEdge {
-  node: TLAddress;
-  cursor: String;
-}
-
-export interface TLAddressEdgePromise
-  extends Promise<TLAddressEdge>,
-    Fragmentable {
-  node: <T = TLAddressPromise>() => T;
-  cursor: () => Promise<String>;
-}
-
-export interface TLAddressEdgeSubscription
-  extends Promise<AsyncIterator<TLAddressEdge>>,
-    Fragmentable {
-  node: <T = TLAddressSubscription>() => T;
-  cursor: () => Promise<AsyncIterator<String>>;
-}
-
-export interface AggregateTLAddress {
-  count: Int;
-}
-
-export interface AggregateTLAddressPromise
-  extends Promise<AggregateTLAddress>,
-    Fragmentable {
-  count: () => Promise<Int>;
-}
-
-export interface AggregateTLAddressSubscription
-  extends Promise<AsyncIterator<AggregateTLAddress>>,
-    Fragmentable {
-  count: () => Promise<AsyncIterator<Int>>;
-}
-
 export interface BatchPayload {
   count: Long;
 }
@@ -2342,9 +2000,11 @@ export interface OwnerPreviousValues {
   id: ID_Output;
   last_name: String;
   first_name: String;
-  email: String;
+  primary_email: String;
+  alt_email?: String;
   password: String;
-  phone_number?: String;
+  perm_phone_number?: String;
+  other_phone_number?: String;
   updatedAt: DateTimeOutput;
 }
 
@@ -2354,9 +2014,11 @@ export interface OwnerPreviousValuesPromise
   id: () => Promise<ID_Output>;
   last_name: () => Promise<String>;
   first_name: () => Promise<String>;
-  email: () => Promise<String>;
+  primary_email: () => Promise<String>;
+  alt_email: () => Promise<String>;
   password: () => Promise<String>;
-  phone_number: () => Promise<String>;
+  perm_phone_number: () => Promise<String>;
+  other_phone_number: () => Promise<String>;
   updatedAt: () => Promise<DateTimeOutput>;
 }
 
@@ -2366,9 +2028,11 @@ export interface OwnerPreviousValuesSubscription
   id: () => Promise<AsyncIterator<ID_Output>>;
   last_name: () => Promise<AsyncIterator<String>>;
   first_name: () => Promise<AsyncIterator<String>>;
-  email: () => Promise<AsyncIterator<String>>;
+  primary_email: () => Promise<AsyncIterator<String>>;
+  alt_email: () => Promise<AsyncIterator<String>>;
   password: () => Promise<AsyncIterator<String>>;
-  phone_number: () => Promise<AsyncIterator<String>>;
+  perm_phone_number: () => Promise<AsyncIterator<String>>;
+  other_phone_number: () => Promise<AsyncIterator<String>>;
   updatedAt: () => Promise<AsyncIterator<DateTimeOutput>>;
 }
 
@@ -2452,7 +2116,7 @@ export interface PermAddressPreviousValues {
   address: String;
   city: String;
   state: String;
-  zip_code: Int;
+  zip_code: String;
 }
 
 export interface PermAddressPreviousValuesPromise
@@ -2462,7 +2126,7 @@ export interface PermAddressPreviousValuesPromise
   address: () => Promise<String>;
   city: () => Promise<String>;
   state: () => Promise<String>;
-  zip_code: () => Promise<Int>;
+  zip_code: () => Promise<String>;
 }
 
 export interface PermAddressPreviousValuesSubscription
@@ -2472,7 +2136,7 @@ export interface PermAddressPreviousValuesSubscription
   address: () => Promise<AsyncIterator<String>>;
   city: () => Promise<AsyncIterator<String>>;
   state: () => Promise<AsyncIterator<String>>;
-  zip_code: () => Promise<AsyncIterator<Int>>;
+  zip_code: () => Promise<AsyncIterator<String>>;
 }
 
 export interface SiteSubscriptionPayload {
@@ -2502,74 +2166,39 @@ export interface SiteSubscriptionPayloadSubscription
 
 export interface SitePreviousValues {
   id: ID_Output;
+  site_number: Int;
+  tl_road_side: String;
+  tl_address: String;
+  land_company: String;
+  owners_association: String;
   trout_lake_water: Boolean;
+  site_phone_number?: String;
 }
 
 export interface SitePreviousValuesPromise
   extends Promise<SitePreviousValues>,
     Fragmentable {
   id: () => Promise<ID_Output>;
+  site_number: () => Promise<Int>;
+  tl_road_side: () => Promise<String>;
+  tl_address: () => Promise<String>;
+  land_company: () => Promise<String>;
+  owners_association: () => Promise<String>;
   trout_lake_water: () => Promise<Boolean>;
+  site_phone_number: () => Promise<String>;
 }
 
 export interface SitePreviousValuesSubscription
   extends Promise<AsyncIterator<SitePreviousValues>>,
     Fragmentable {
   id: () => Promise<AsyncIterator<ID_Output>>;
+  site_number: () => Promise<AsyncIterator<Int>>;
+  tl_road_side: () => Promise<AsyncIterator<String>>;
+  tl_address: () => Promise<AsyncIterator<String>>;
+  land_company: () => Promise<AsyncIterator<String>>;
+  owners_association: () => Promise<AsyncIterator<String>>;
   trout_lake_water: () => Promise<AsyncIterator<Boolean>>;
-}
-
-export interface TLAddressSubscriptionPayload {
-  mutation: MutationType;
-  node: TLAddress;
-  updatedFields: String[];
-  previousValues: TLAddressPreviousValues;
-}
-
-export interface TLAddressSubscriptionPayloadPromise
-  extends Promise<TLAddressSubscriptionPayload>,
-    Fragmentable {
-  mutation: () => Promise<MutationType>;
-  node: <T = TLAddressPromise>() => T;
-  updatedFields: () => Promise<String[]>;
-  previousValues: <T = TLAddressPreviousValuesPromise>() => T;
-}
-
-export interface TLAddressSubscriptionPayloadSubscription
-  extends Promise<AsyncIterator<TLAddressSubscriptionPayload>>,
-    Fragmentable {
-  mutation: () => Promise<AsyncIterator<MutationType>>;
-  node: <T = TLAddressSubscription>() => T;
-  updatedFields: () => Promise<AsyncIterator<String[]>>;
-  previousValues: <T = TLAddressPreviousValuesSubscription>() => T;
-}
-
-export interface TLAddressPreviousValues {
-  id: ID_Output;
-  address: String;
-  city: String;
-  state: String;
-  zip_code: Int;
-}
-
-export interface TLAddressPreviousValuesPromise
-  extends Promise<TLAddressPreviousValues>,
-    Fragmentable {
-  id: () => Promise<ID_Output>;
-  address: () => Promise<String>;
-  city: () => Promise<String>;
-  state: () => Promise<String>;
-  zip_code: () => Promise<Int>;
-}
-
-export interface TLAddressPreviousValuesSubscription
-  extends Promise<AsyncIterator<TLAddressPreviousValues>>,
-    Fragmentable {
-  id: () => Promise<AsyncIterator<ID_Output>>;
-  address: () => Promise<AsyncIterator<String>>;
-  city: () => Promise<AsyncIterator<String>>;
-  state: () => Promise<AsyncIterator<String>>;
-  zip_code: () => Promise<AsyncIterator<Int>>;
+  site_phone_number: () => Promise<AsyncIterator<String>>;
 }
 
 /*
@@ -2620,10 +2249,6 @@ export const models: Model[] = [
   },
   {
     name: "Site",
-    embedded: false
-  },
-  {
-    name: "TLAddress",
     embedded: false
   },
   {
