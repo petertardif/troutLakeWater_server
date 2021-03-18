@@ -1,5 +1,5 @@
 function createdBy(parent, args, context) {
-  return context.prisma.owner({ id: parent.id }).createdBy()
+  return context.prisma.user({ id: parent.id }).createdBy()
 }
 
 module.exports = {

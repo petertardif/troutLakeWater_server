@@ -1,5 +1,16 @@
 scalar DateTime
 
+enum PaymentType {
+	CASH
+	CHECK
+	CREDIT_CARD
+}
+
+enum Role {
+	ADMIN
+	OWNER
+}
+
 enum TLRoadSide {
 	NORTH
 	SOUTH
@@ -16,14 +27,14 @@ enum Association {
 }
 
 type Query {
-	owners: [Owner!]!
-	owner(id: ID): Owner
+	users: [User!]!
+	user(id: ID): User
 	sites: [Site!]!
 	site(id: ID): Site
 }
 
 type Mutation {
-	createNewOwner(
+	createNewUser(
 		last_name: String!
 		first_name: String!
 		primary_email: String!
@@ -31,7 +42,7 @@ type Mutation {
 		password: String!
 		perm_phone_number: String
 		other_phone_number: String
-	): Owner!
+	): User!
 	createSite(
 		site_number: Int!
 		tl_road_side: TLRoadSide!
@@ -47,6 +58,16 @@ type Mutation {
 		state: String!
 		zip_code: String!
 	): PermAddress!
+	createBill(
+		year: Int!
+		payment_due: DateTime!
+		site: Int!
+	): Bill!
+	createPayment(
+		paid: Boolean!
+		payment_type: PaymentType!
+		bills: Int!
+	): Payment!
 	signup(
 		last_name: String!
 		first_name: String!
@@ -55,16 +76,17 @@ type Mutation {
 		password: String!
 		perm_phone_number: String
 		other_phone_number: String
+		role: String
 	): AuthPayload
 	login(primary_email: String!, password: String!): AuthPayload
 }
 
 type AuthPayload {
 	token: String
-	owner: Owner
+	user: User
 }
 
-type Owner {
+type User {
 	id: ID!
 	last_name: String!
 	first_name: String!
@@ -74,6 +96,8 @@ type Owner {
 	perm_phone_number: String
 	other_phone_number: String
 	p_addresses: PermAddress
+	role: Role! 
+	isDeleted: Boolean! 
 }
 
 type PermAddress {
@@ -82,7 +106,7 @@ type PermAddress {
 	city: String!
 	state: String!
 	zip_code: Int!
-	createdBy: Owner
+	createdBy: User
 }
 
 type Site {
@@ -93,22 +117,24 @@ type Site {
 	land_company: LandCompany!
 	owners_association: Association!
 	trout_lake_water: Boolean!
-	owners: [Owner!]!
+	users: [User!]!
 	site_phone_number: String
+	bills: [Bill!]!
 }
 
 type Bill {
 	id: ID!
 	year: Int!
-	payment: Payment
+	isPaid: Boolean!
 	payment_due: DateTime!
-	site: Site
+	site: Site!
+	payment: Payment
 }
 
 type Payment {
 	id: ID!
 	paid: Boolean!
-	payment_type: String!
+	payment_type: PaymentType!
 	date_paid: DateTime! 
-	bills: [Bill!]!
+	bills: Bill!
 }

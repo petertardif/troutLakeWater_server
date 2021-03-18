@@ -7,10 +7,6 @@ module.exports = {
   count: Int!
 }
 
-type AggregateOwner {
-  count: Int!
-}
-
 type AggregatePayment {
   count: Int!
 }
@@ -23,6 +19,10 @@ type AggregateSite {
   count: Int!
 }
 
+type AggregateUser {
+  count: Int!
+}
+
 type BatchPayload {
   count: Long!
 }
@@ -30,9 +30,10 @@ type BatchPayload {
 type Bill {
   id: ID!
   year: Int!
-  payment: Payment
+  isPaid: Boolean!
   payment_due: DateTime!
-  site: Site
+  site: Site!
+  payment: Payment
 }
 
 type BillConnection {
@@ -43,9 +44,10 @@ type BillConnection {
 
 input BillCreateInput {
   year: Int!
-  payment: PaymentCreateOneWithoutBillsInput
+  isPaid: Boolean
   payment_due: DateTime!
-  site: SiteCreateOneInput
+  site: SiteCreateOneWithoutBillsInput!
+  payment: PaymentCreateOneWithoutBillsInput
 }
 
 input BillCreateManyWithoutPaymentInput {
@@ -53,10 +55,23 @@ input BillCreateManyWithoutPaymentInput {
   connect: [BillWhereUniqueInput!]
 }
 
+input BillCreateManyWithoutSiteInput {
+  create: [BillCreateWithoutSiteInput!]
+  connect: [BillWhereUniqueInput!]
+}
+
 input BillCreateWithoutPaymentInput {
   year: Int!
+  isPaid: Boolean
   payment_due: DateTime!
-  site: SiteCreateOneInput
+  site: SiteCreateOneWithoutBillsInput!
+}
+
+input BillCreateWithoutSiteInput {
+  year: Int!
+  isPaid: Boolean
+  payment_due: DateTime!
+  payment: PaymentCreateOneWithoutBillsInput
 }
 
 type BillEdge {
@@ -69,6 +84,8 @@ enum BillOrderByInput {
   id_DESC
   year_ASC
   year_DESC
+  isPaid_ASC
+  isPaid_DESC
   payment_due_ASC
   payment_due_DESC
 }
@@ -76,6 +93,7 @@ enum BillOrderByInput {
 type BillPreviousValues {
   id: ID!
   year: Int!
+  isPaid: Boolean!
   payment_due: DateTime!
 }
 
@@ -102,6 +120,8 @@ input BillScalarWhereInput {
   year_lte: Int
   year_gt: Int
   year_gte: Int
+  isPaid: Boolean
+  isPaid_not: Boolean
   payment_due: DateTime
   payment_due_not: DateTime
   payment_due_in: [DateTime!]
@@ -135,18 +155,21 @@ input BillSubscriptionWhereInput {
 
 input BillUpdateInput {
   year: Int
-  payment: PaymentUpdateOneWithoutBillsInput
+  isPaid: Boolean
   payment_due: DateTime
-  site: SiteUpdateOneInput
+  site: SiteUpdateOneRequiredWithoutBillsInput
+  payment: PaymentUpdateOneWithoutBillsInput
 }
 
 input BillUpdateManyDataInput {
   year: Int
+  isPaid: Boolean
   payment_due: DateTime
 }
 
 input BillUpdateManyMutationInput {
   year: Int
+  isPaid: Boolean
   payment_due: DateTime
 }
 
@@ -162,6 +185,18 @@ input BillUpdateManyWithoutPaymentInput {
   updateMany: [BillUpdateManyWithWhereNestedInput!]
 }
 
+input BillUpdateManyWithoutSiteInput {
+  create: [BillCreateWithoutSiteInput!]
+  delete: [BillWhereUniqueInput!]
+  connect: [BillWhereUniqueInput!]
+  set: [BillWhereUniqueInput!]
+  disconnect: [BillWhereUniqueInput!]
+  update: [BillUpdateWithWhereUniqueWithoutSiteInput!]
+  upsert: [BillUpsertWithWhereUniqueWithoutSiteInput!]
+  deleteMany: [BillScalarWhereInput!]
+  updateMany: [BillUpdateManyWithWhereNestedInput!]
+}
+
 input BillUpdateManyWithWhereNestedInput {
   where: BillScalarWhereInput!
   data: BillUpdateManyDataInput!
@@ -169,8 +204,16 @@ input BillUpdateManyWithWhereNestedInput {
 
 input BillUpdateWithoutPaymentDataInput {
   year: Int
+  isPaid: Boolean
   payment_due: DateTime
-  site: SiteUpdateOneInput
+  site: SiteUpdateOneRequiredWithoutBillsInput
+}
+
+input BillUpdateWithoutSiteDataInput {
+  year: Int
+  isPaid: Boolean
+  payment_due: DateTime
+  payment: PaymentUpdateOneWithoutBillsInput
 }
 
 input BillUpdateWithWhereUniqueWithoutPaymentInput {
@@ -178,10 +221,21 @@ input BillUpdateWithWhereUniqueWithoutPaymentInput {
   data: BillUpdateWithoutPaymentDataInput!
 }
 
+input BillUpdateWithWhereUniqueWithoutSiteInput {
+  where: BillWhereUniqueInput!
+  data: BillUpdateWithoutSiteDataInput!
+}
+
 input BillUpsertWithWhereUniqueWithoutPaymentInput {
   where: BillWhereUniqueInput!
   update: BillUpdateWithoutPaymentDataInput!
   create: BillCreateWithoutPaymentInput!
+}
+
+input BillUpsertWithWhereUniqueWithoutSiteInput {
+  where: BillWhereUniqueInput!
+  update: BillUpdateWithoutSiteDataInput!
+  create: BillCreateWithoutSiteInput!
 }
 
 input BillWhereInput {
@@ -207,7 +261,8 @@ input BillWhereInput {
   year_lte: Int
   year_gt: Int
   year_gte: Int
-  payment: PaymentWhereInput
+  isPaid: Boolean
+  isPaid_not: Boolean
   payment_due: DateTime
   payment_due_not: DateTime
   payment_due_in: [DateTime!]
@@ -217,6 +272,7 @@ input BillWhereInput {
   payment_due_gt: DateTime
   payment_due_gte: DateTime
   site: SiteWhereInput
+  payment: PaymentWhereInput
   AND: [BillWhereInput!]
   OR: [BillWhereInput!]
   NOT: [BillWhereInput!]
@@ -237,12 +293,6 @@ type Mutation {
   upsertBill(where: BillWhereUniqueInput!, create: BillCreateInput!, update: BillUpdateInput!): Bill!
   deleteBill(where: BillWhereUniqueInput!): Bill
   deleteManyBills(where: BillWhereInput): BatchPayload!
-  createOwner(data: OwnerCreateInput!): Owner!
-  updateOwner(data: OwnerUpdateInput!, where: OwnerWhereUniqueInput!): Owner
-  updateManyOwners(data: OwnerUpdateManyMutationInput!, where: OwnerWhereInput): BatchPayload!
-  upsertOwner(where: OwnerWhereUniqueInput!, create: OwnerCreateInput!, update: OwnerUpdateInput!): Owner!
-  deleteOwner(where: OwnerWhereUniqueInput!): Owner
-  deleteManyOwners(where: OwnerWhereInput): BatchPayload!
   createPayment(data: PaymentCreateInput!): Payment!
   updatePayment(data: PaymentUpdateInput!, where: PaymentWhereUniqueInput!): Payment
   updateManyPayments(data: PaymentUpdateManyMutationInput!, where: PaymentWhereInput): BatchPayload!
@@ -261,6 +311,12 @@ type Mutation {
   upsertSite(where: SiteWhereUniqueInput!, create: SiteCreateInput!, update: SiteUpdateInput!): Site!
   deleteSite(where: SiteWhereUniqueInput!): Site
   deleteManySites(where: SiteWhereInput): BatchPayload!
+  createUser(data: UserCreateInput!): User!
+  updateUser(data: UserUpdateInput!, where: UserWhereUniqueInput!): User
+  updateManyUsers(data: UserUpdateManyMutationInput!, where: UserWhereInput): BatchPayload!
+  upsertUser(where: UserWhereUniqueInput!, create: UserCreateInput!, update: UserUpdateInput!): User!
+  deleteUser(where: UserWhereUniqueInput!): User
+  deleteManyUsers(where: UserWhereInput): BatchPayload!
 }
 
 enum MutationType {
@@ -271,465 +327,6 @@ enum MutationType {
 
 interface Node {
   id: ID!
-}
-
-type Owner {
-  id: ID!
-  last_name: String!
-  first_name: String!
-  primary_email: String!
-  alt_email: String
-  password: String!
-  perm_phone_number: String
-  other_phone_number: String
-  p_addresses: PermAddress
-  updatedAt: DateTime!
-}
-
-type OwnerConnection {
-  pageInfo: PageInfo!
-  edges: [OwnerEdge]!
-  aggregate: AggregateOwner!
-}
-
-input OwnerCreateInput {
-  last_name: String!
-  first_name: String!
-  primary_email: String!
-  alt_email: String
-  password: String!
-  perm_phone_number: String
-  other_phone_number: String
-  p_addresses: PermAddressCreateOneWithoutCreatedByInput
-}
-
-input OwnerCreateManyInput {
-  create: [OwnerCreateInput!]
-  connect: [OwnerWhereUniqueInput!]
-}
-
-input OwnerCreateOneWithoutP_addressesInput {
-  create: OwnerCreateWithoutP_addressesInput
-  connect: OwnerWhereUniqueInput
-}
-
-input OwnerCreateWithoutP_addressesInput {
-  last_name: String!
-  first_name: String!
-  primary_email: String!
-  alt_email: String
-  password: String!
-  perm_phone_number: String
-  other_phone_number: String
-}
-
-type OwnerEdge {
-  node: Owner!
-  cursor: String!
-}
-
-enum OwnerOrderByInput {
-  id_ASC
-  id_DESC
-  last_name_ASC
-  last_name_DESC
-  first_name_ASC
-  first_name_DESC
-  primary_email_ASC
-  primary_email_DESC
-  alt_email_ASC
-  alt_email_DESC
-  password_ASC
-  password_DESC
-  perm_phone_number_ASC
-  perm_phone_number_DESC
-  other_phone_number_ASC
-  other_phone_number_DESC
-  updatedAt_ASC
-  updatedAt_DESC
-}
-
-type OwnerPreviousValues {
-  id: ID!
-  last_name: String!
-  first_name: String!
-  primary_email: String!
-  alt_email: String
-  password: String!
-  perm_phone_number: String
-  other_phone_number: String
-  updatedAt: DateTime!
-}
-
-input OwnerScalarWhereInput {
-  id: ID
-  id_not: ID
-  id_in: [ID!]
-  id_not_in: [ID!]
-  id_lt: ID
-  id_lte: ID
-  id_gt: ID
-  id_gte: ID
-  id_contains: ID
-  id_not_contains: ID
-  id_starts_with: ID
-  id_not_starts_with: ID
-  id_ends_with: ID
-  id_not_ends_with: ID
-  last_name: String
-  last_name_not: String
-  last_name_in: [String!]
-  last_name_not_in: [String!]
-  last_name_lt: String
-  last_name_lte: String
-  last_name_gt: String
-  last_name_gte: String
-  last_name_contains: String
-  last_name_not_contains: String
-  last_name_starts_with: String
-  last_name_not_starts_with: String
-  last_name_ends_with: String
-  last_name_not_ends_with: String
-  first_name: String
-  first_name_not: String
-  first_name_in: [String!]
-  first_name_not_in: [String!]
-  first_name_lt: String
-  first_name_lte: String
-  first_name_gt: String
-  first_name_gte: String
-  first_name_contains: String
-  first_name_not_contains: String
-  first_name_starts_with: String
-  first_name_not_starts_with: String
-  first_name_ends_with: String
-  first_name_not_ends_with: String
-  primary_email: String
-  primary_email_not: String
-  primary_email_in: [String!]
-  primary_email_not_in: [String!]
-  primary_email_lt: String
-  primary_email_lte: String
-  primary_email_gt: String
-  primary_email_gte: String
-  primary_email_contains: String
-  primary_email_not_contains: String
-  primary_email_starts_with: String
-  primary_email_not_starts_with: String
-  primary_email_ends_with: String
-  primary_email_not_ends_with: String
-  alt_email: String
-  alt_email_not: String
-  alt_email_in: [String!]
-  alt_email_not_in: [String!]
-  alt_email_lt: String
-  alt_email_lte: String
-  alt_email_gt: String
-  alt_email_gte: String
-  alt_email_contains: String
-  alt_email_not_contains: String
-  alt_email_starts_with: String
-  alt_email_not_starts_with: String
-  alt_email_ends_with: String
-  alt_email_not_ends_with: String
-  password: String
-  password_not: String
-  password_in: [String!]
-  password_not_in: [String!]
-  password_lt: String
-  password_lte: String
-  password_gt: String
-  password_gte: String
-  password_contains: String
-  password_not_contains: String
-  password_starts_with: String
-  password_not_starts_with: String
-  password_ends_with: String
-  password_not_ends_with: String
-  perm_phone_number: String
-  perm_phone_number_not: String
-  perm_phone_number_in: [String!]
-  perm_phone_number_not_in: [String!]
-  perm_phone_number_lt: String
-  perm_phone_number_lte: String
-  perm_phone_number_gt: String
-  perm_phone_number_gte: String
-  perm_phone_number_contains: String
-  perm_phone_number_not_contains: String
-  perm_phone_number_starts_with: String
-  perm_phone_number_not_starts_with: String
-  perm_phone_number_ends_with: String
-  perm_phone_number_not_ends_with: String
-  other_phone_number: String
-  other_phone_number_not: String
-  other_phone_number_in: [String!]
-  other_phone_number_not_in: [String!]
-  other_phone_number_lt: String
-  other_phone_number_lte: String
-  other_phone_number_gt: String
-  other_phone_number_gte: String
-  other_phone_number_contains: String
-  other_phone_number_not_contains: String
-  other_phone_number_starts_with: String
-  other_phone_number_not_starts_with: String
-  other_phone_number_ends_with: String
-  other_phone_number_not_ends_with: String
-  updatedAt: DateTime
-  updatedAt_not: DateTime
-  updatedAt_in: [DateTime!]
-  updatedAt_not_in: [DateTime!]
-  updatedAt_lt: DateTime
-  updatedAt_lte: DateTime
-  updatedAt_gt: DateTime
-  updatedAt_gte: DateTime
-  AND: [OwnerScalarWhereInput!]
-  OR: [OwnerScalarWhereInput!]
-  NOT: [OwnerScalarWhereInput!]
-}
-
-type OwnerSubscriptionPayload {
-  mutation: MutationType!
-  node: Owner
-  updatedFields: [String!]
-  previousValues: OwnerPreviousValues
-}
-
-input OwnerSubscriptionWhereInput {
-  mutation_in: [MutationType!]
-  updatedFields_contains: String
-  updatedFields_contains_every: [String!]
-  updatedFields_contains_some: [String!]
-  node: OwnerWhereInput
-  AND: [OwnerSubscriptionWhereInput!]
-  OR: [OwnerSubscriptionWhereInput!]
-  NOT: [OwnerSubscriptionWhereInput!]
-}
-
-input OwnerUpdateDataInput {
-  last_name: String
-  first_name: String
-  primary_email: String
-  alt_email: String
-  password: String
-  perm_phone_number: String
-  other_phone_number: String
-  p_addresses: PermAddressUpdateOneWithoutCreatedByInput
-}
-
-input OwnerUpdateInput {
-  last_name: String
-  first_name: String
-  primary_email: String
-  alt_email: String
-  password: String
-  perm_phone_number: String
-  other_phone_number: String
-  p_addresses: PermAddressUpdateOneWithoutCreatedByInput
-}
-
-input OwnerUpdateManyDataInput {
-  last_name: String
-  first_name: String
-  primary_email: String
-  alt_email: String
-  password: String
-  perm_phone_number: String
-  other_phone_number: String
-}
-
-input OwnerUpdateManyInput {
-  create: [OwnerCreateInput!]
-  update: [OwnerUpdateWithWhereUniqueNestedInput!]
-  upsert: [OwnerUpsertWithWhereUniqueNestedInput!]
-  delete: [OwnerWhereUniqueInput!]
-  connect: [OwnerWhereUniqueInput!]
-  set: [OwnerWhereUniqueInput!]
-  disconnect: [OwnerWhereUniqueInput!]
-  deleteMany: [OwnerScalarWhereInput!]
-  updateMany: [OwnerUpdateManyWithWhereNestedInput!]
-}
-
-input OwnerUpdateManyMutationInput {
-  last_name: String
-  first_name: String
-  primary_email: String
-  alt_email: String
-  password: String
-  perm_phone_number: String
-  other_phone_number: String
-}
-
-input OwnerUpdateManyWithWhereNestedInput {
-  where: OwnerScalarWhereInput!
-  data: OwnerUpdateManyDataInput!
-}
-
-input OwnerUpdateOneWithoutP_addressesInput {
-  create: OwnerCreateWithoutP_addressesInput
-  update: OwnerUpdateWithoutP_addressesDataInput
-  upsert: OwnerUpsertWithoutP_addressesInput
-  delete: Boolean
-  disconnect: Boolean
-  connect: OwnerWhereUniqueInput
-}
-
-input OwnerUpdateWithoutP_addressesDataInput {
-  last_name: String
-  first_name: String
-  primary_email: String
-  alt_email: String
-  password: String
-  perm_phone_number: String
-  other_phone_number: String
-}
-
-input OwnerUpdateWithWhereUniqueNestedInput {
-  where: OwnerWhereUniqueInput!
-  data: OwnerUpdateDataInput!
-}
-
-input OwnerUpsertWithoutP_addressesInput {
-  update: OwnerUpdateWithoutP_addressesDataInput!
-  create: OwnerCreateWithoutP_addressesInput!
-}
-
-input OwnerUpsertWithWhereUniqueNestedInput {
-  where: OwnerWhereUniqueInput!
-  update: OwnerUpdateDataInput!
-  create: OwnerCreateInput!
-}
-
-input OwnerWhereInput {
-  id: ID
-  id_not: ID
-  id_in: [ID!]
-  id_not_in: [ID!]
-  id_lt: ID
-  id_lte: ID
-  id_gt: ID
-  id_gte: ID
-  id_contains: ID
-  id_not_contains: ID
-  id_starts_with: ID
-  id_not_starts_with: ID
-  id_ends_with: ID
-  id_not_ends_with: ID
-  last_name: String
-  last_name_not: String
-  last_name_in: [String!]
-  last_name_not_in: [String!]
-  last_name_lt: String
-  last_name_lte: String
-  last_name_gt: String
-  last_name_gte: String
-  last_name_contains: String
-  last_name_not_contains: String
-  last_name_starts_with: String
-  last_name_not_starts_with: String
-  last_name_ends_with: String
-  last_name_not_ends_with: String
-  first_name: String
-  first_name_not: String
-  first_name_in: [String!]
-  first_name_not_in: [String!]
-  first_name_lt: String
-  first_name_lte: String
-  first_name_gt: String
-  first_name_gte: String
-  first_name_contains: String
-  first_name_not_contains: String
-  first_name_starts_with: String
-  first_name_not_starts_with: String
-  first_name_ends_with: String
-  first_name_not_ends_with: String
-  primary_email: String
-  primary_email_not: String
-  primary_email_in: [String!]
-  primary_email_not_in: [String!]
-  primary_email_lt: String
-  primary_email_lte: String
-  primary_email_gt: String
-  primary_email_gte: String
-  primary_email_contains: String
-  primary_email_not_contains: String
-  primary_email_starts_with: String
-  primary_email_not_starts_with: String
-  primary_email_ends_with: String
-  primary_email_not_ends_with: String
-  alt_email: String
-  alt_email_not: String
-  alt_email_in: [String!]
-  alt_email_not_in: [String!]
-  alt_email_lt: String
-  alt_email_lte: String
-  alt_email_gt: String
-  alt_email_gte: String
-  alt_email_contains: String
-  alt_email_not_contains: String
-  alt_email_starts_with: String
-  alt_email_not_starts_with: String
-  alt_email_ends_with: String
-  alt_email_not_ends_with: String
-  password: String
-  password_not: String
-  password_in: [String!]
-  password_not_in: [String!]
-  password_lt: String
-  password_lte: String
-  password_gt: String
-  password_gte: String
-  password_contains: String
-  password_not_contains: String
-  password_starts_with: String
-  password_not_starts_with: String
-  password_ends_with: String
-  password_not_ends_with: String
-  perm_phone_number: String
-  perm_phone_number_not: String
-  perm_phone_number_in: [String!]
-  perm_phone_number_not_in: [String!]
-  perm_phone_number_lt: String
-  perm_phone_number_lte: String
-  perm_phone_number_gt: String
-  perm_phone_number_gte: String
-  perm_phone_number_contains: String
-  perm_phone_number_not_contains: String
-  perm_phone_number_starts_with: String
-  perm_phone_number_not_starts_with: String
-  perm_phone_number_ends_with: String
-  perm_phone_number_not_ends_with: String
-  other_phone_number: String
-  other_phone_number_not: String
-  other_phone_number_in: [String!]
-  other_phone_number_not_in: [String!]
-  other_phone_number_lt: String
-  other_phone_number_lte: String
-  other_phone_number_gt: String
-  other_phone_number_gte: String
-  other_phone_number_contains: String
-  other_phone_number_not_contains: String
-  other_phone_number_starts_with: String
-  other_phone_number_not_starts_with: String
-  other_phone_number_ends_with: String
-  other_phone_number_not_ends_with: String
-  p_addresses: PermAddressWhereInput
-  updatedAt: DateTime
-  updatedAt_not: DateTime
-  updatedAt_in: [DateTime!]
-  updatedAt_not_in: [DateTime!]
-  updatedAt_lt: DateTime
-  updatedAt_lte: DateTime
-  updatedAt_gt: DateTime
-  updatedAt_gte: DateTime
-  AND: [OwnerWhereInput!]
-  OR: [OwnerWhereInput!]
-  NOT: [OwnerWhereInput!]
-}
-
-input OwnerWhereUniqueInput {
-  id: ID
-  primary_email: String
-  alt_email: String
 }
 
 type PageInfo {
@@ -897,7 +494,7 @@ type PermAddress {
   city: String!
   state: String!
   zip_code: String!
-  createdBy: Owner
+  createdBy: User
 }
 
 type PermAddressConnection {
@@ -911,7 +508,7 @@ input PermAddressCreateInput {
   city: String!
   state: String!
   zip_code: String!
-  createdBy: OwnerCreateOneWithoutP_addressesInput
+  createdBy: UserCreateOneWithoutP_addressesInput
 }
 
 input PermAddressCreateOneWithoutCreatedByInput {
@@ -975,7 +572,7 @@ input PermAddressUpdateInput {
   city: String
   state: String
   zip_code: String
-  createdBy: OwnerUpdateOneWithoutP_addressesInput
+  createdBy: UserUpdateOneWithoutP_addressesInput
 }
 
 input PermAddressUpdateManyMutationInput {
@@ -1077,7 +674,7 @@ input PermAddressWhereInput {
   zip_code_not_starts_with: String
   zip_code_ends_with: String
   zip_code_not_ends_with: String
-  createdBy: OwnerWhereInput
+  createdBy: UserWhereInput
   AND: [PermAddressWhereInput!]
   OR: [PermAddressWhereInput!]
   NOT: [PermAddressWhereInput!]
@@ -1091,9 +688,6 @@ type Query {
   bill(where: BillWhereUniqueInput!): Bill
   bills(where: BillWhereInput, orderBy: BillOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Bill]!
   billsConnection(where: BillWhereInput, orderBy: BillOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): BillConnection!
-  owner(where: OwnerWhereUniqueInput!): Owner
-  owners(where: OwnerWhereInput, orderBy: OwnerOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Owner]!
-  ownersConnection(where: OwnerWhereInput, orderBy: OwnerOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): OwnerConnection!
   payment(where: PaymentWhereUniqueInput!): Payment
   payments(where: PaymentWhereInput, orderBy: PaymentOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Payment]!
   paymentsConnection(where: PaymentWhereInput, orderBy: PaymentOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): PaymentConnection!
@@ -1103,6 +697,9 @@ type Query {
   site(where: SiteWhereUniqueInput!): Site
   sites(where: SiteWhereInput, orderBy: SiteOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Site]!
   sitesConnection(where: SiteWhereInput, orderBy: SiteOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): SiteConnection!
+  user(where: UserWhereUniqueInput!): User
+  users(where: UserWhereInput, orderBy: UserOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [User]!
+  usersConnection(where: UserWhereInput, orderBy: UserOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): UserConnection!
   node(id: ID!): Node
 }
 
@@ -1114,8 +711,9 @@ type Site {
   land_company: String!
   owners_association: String!
   trout_lake_water: Boolean!
-  owners(where: OwnerWhereInput, orderBy: OwnerOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Owner!]
+  users(where: UserWhereInput, orderBy: UserOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [User!]
   site_phone_number: String
+  bills(where: BillWhereInput, orderBy: BillOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Bill!]
 }
 
 type SiteConnection {
@@ -1131,13 +729,25 @@ input SiteCreateInput {
   land_company: String!
   owners_association: String!
   trout_lake_water: Boolean!
-  owners: OwnerCreateManyInput
+  users: UserCreateManyInput
   site_phone_number: String
+  bills: BillCreateManyWithoutSiteInput
 }
 
-input SiteCreateOneInput {
-  create: SiteCreateInput
+input SiteCreateOneWithoutBillsInput {
+  create: SiteCreateWithoutBillsInput
   connect: SiteWhereUniqueInput
+}
+
+input SiteCreateWithoutBillsInput {
+  site_number: Int!
+  tl_road_side: String!
+  tl_address: String!
+  land_company: String!
+  owners_association: String!
+  trout_lake_water: Boolean!
+  users: UserCreateManyInput
+  site_phone_number: String
 }
 
 type SiteEdge {
@@ -1193,17 +803,6 @@ input SiteSubscriptionWhereInput {
   NOT: [SiteSubscriptionWhereInput!]
 }
 
-input SiteUpdateDataInput {
-  site_number: Int
-  tl_road_side: String
-  tl_address: String
-  land_company: String
-  owners_association: String
-  trout_lake_water: Boolean
-  owners: OwnerUpdateManyInput
-  site_phone_number: String
-}
-
 input SiteUpdateInput {
   site_number: Int
   tl_road_side: String
@@ -1211,8 +810,9 @@ input SiteUpdateInput {
   land_company: String
   owners_association: String
   trout_lake_water: Boolean
-  owners: OwnerUpdateManyInput
+  users: UserUpdateManyInput
   site_phone_number: String
+  bills: BillUpdateManyWithoutSiteInput
 }
 
 input SiteUpdateManyMutationInput {
@@ -1225,18 +825,27 @@ input SiteUpdateManyMutationInput {
   site_phone_number: String
 }
 
-input SiteUpdateOneInput {
-  create: SiteCreateInput
-  update: SiteUpdateDataInput
-  upsert: SiteUpsertNestedInput
-  delete: Boolean
-  disconnect: Boolean
+input SiteUpdateOneRequiredWithoutBillsInput {
+  create: SiteCreateWithoutBillsInput
+  update: SiteUpdateWithoutBillsDataInput
+  upsert: SiteUpsertWithoutBillsInput
   connect: SiteWhereUniqueInput
 }
 
-input SiteUpsertNestedInput {
-  update: SiteUpdateDataInput!
-  create: SiteCreateInput!
+input SiteUpdateWithoutBillsDataInput {
+  site_number: Int
+  tl_road_side: String
+  tl_address: String
+  land_company: String
+  owners_association: String
+  trout_lake_water: Boolean
+  users: UserUpdateManyInput
+  site_phone_number: String
+}
+
+input SiteUpsertWithoutBillsInput {
+  update: SiteUpdateWithoutBillsDataInput!
+  create: SiteCreateWithoutBillsInput!
 }
 
 input SiteWhereInput {
@@ -1320,9 +929,9 @@ input SiteWhereInput {
   owners_association_not_ends_with: String
   trout_lake_water: Boolean
   trout_lake_water_not: Boolean
-  owners_every: OwnerWhereInput
-  owners_some: OwnerWhereInput
-  owners_none: OwnerWhereInput
+  users_every: UserWhereInput
+  users_some: UserWhereInput
+  users_none: UserWhereInput
   site_phone_number: String
   site_phone_number_not: String
   site_phone_number_in: [String!]
@@ -1337,6 +946,9 @@ input SiteWhereInput {
   site_phone_number_not_starts_with: String
   site_phone_number_ends_with: String
   site_phone_number_not_ends_with: String
+  bills_every: BillWhereInput
+  bills_some: BillWhereInput
+  bills_none: BillWhereInput
   AND: [SiteWhereInput!]
   OR: [SiteWhereInput!]
   NOT: [SiteWhereInput!]
@@ -1349,10 +961,523 @@ input SiteWhereUniqueInput {
 
 type Subscription {
   bill(where: BillSubscriptionWhereInput): BillSubscriptionPayload
-  owner(where: OwnerSubscriptionWhereInput): OwnerSubscriptionPayload
   payment(where: PaymentSubscriptionWhereInput): PaymentSubscriptionPayload
   permAddress(where: PermAddressSubscriptionWhereInput): PermAddressSubscriptionPayload
   site(where: SiteSubscriptionWhereInput): SiteSubscriptionPayload
+  user(where: UserSubscriptionWhereInput): UserSubscriptionPayload
+}
+
+type User {
+  id: ID!
+  last_name: String!
+  first_name: String!
+  primary_email: String!
+  alt_email: String
+  password: String!
+  perm_phone_number: String
+  other_phone_number: String
+  p_addresses: PermAddress
+  role: String!
+  isDeleted: Boolean!
+  updatedAt: DateTime!
+}
+
+type UserConnection {
+  pageInfo: PageInfo!
+  edges: [UserEdge]!
+  aggregate: AggregateUser!
+}
+
+input UserCreateInput {
+  last_name: String!
+  first_name: String!
+  primary_email: String!
+  alt_email: String
+  password: String!
+  perm_phone_number: String
+  other_phone_number: String
+  p_addresses: PermAddressCreateOneWithoutCreatedByInput
+  role: String
+  isDeleted: Boolean
+}
+
+input UserCreateManyInput {
+  create: [UserCreateInput!]
+  connect: [UserWhereUniqueInput!]
+}
+
+input UserCreateOneWithoutP_addressesInput {
+  create: UserCreateWithoutP_addressesInput
+  connect: UserWhereUniqueInput
+}
+
+input UserCreateWithoutP_addressesInput {
+  last_name: String!
+  first_name: String!
+  primary_email: String!
+  alt_email: String
+  password: String!
+  perm_phone_number: String
+  other_phone_number: String
+  role: String
+  isDeleted: Boolean
+}
+
+type UserEdge {
+  node: User!
+  cursor: String!
+}
+
+enum UserOrderByInput {
+  id_ASC
+  id_DESC
+  last_name_ASC
+  last_name_DESC
+  first_name_ASC
+  first_name_DESC
+  primary_email_ASC
+  primary_email_DESC
+  alt_email_ASC
+  alt_email_DESC
+  password_ASC
+  password_DESC
+  perm_phone_number_ASC
+  perm_phone_number_DESC
+  other_phone_number_ASC
+  other_phone_number_DESC
+  role_ASC
+  role_DESC
+  isDeleted_ASC
+  isDeleted_DESC
+  updatedAt_ASC
+  updatedAt_DESC
+}
+
+type UserPreviousValues {
+  id: ID!
+  last_name: String!
+  first_name: String!
+  primary_email: String!
+  alt_email: String
+  password: String!
+  perm_phone_number: String
+  other_phone_number: String
+  role: String!
+  isDeleted: Boolean!
+  updatedAt: DateTime!
+}
+
+input UserScalarWhereInput {
+  id: ID
+  id_not: ID
+  id_in: [ID!]
+  id_not_in: [ID!]
+  id_lt: ID
+  id_lte: ID
+  id_gt: ID
+  id_gte: ID
+  id_contains: ID
+  id_not_contains: ID
+  id_starts_with: ID
+  id_not_starts_with: ID
+  id_ends_with: ID
+  id_not_ends_with: ID
+  last_name: String
+  last_name_not: String
+  last_name_in: [String!]
+  last_name_not_in: [String!]
+  last_name_lt: String
+  last_name_lte: String
+  last_name_gt: String
+  last_name_gte: String
+  last_name_contains: String
+  last_name_not_contains: String
+  last_name_starts_with: String
+  last_name_not_starts_with: String
+  last_name_ends_with: String
+  last_name_not_ends_with: String
+  first_name: String
+  first_name_not: String
+  first_name_in: [String!]
+  first_name_not_in: [String!]
+  first_name_lt: String
+  first_name_lte: String
+  first_name_gt: String
+  first_name_gte: String
+  first_name_contains: String
+  first_name_not_contains: String
+  first_name_starts_with: String
+  first_name_not_starts_with: String
+  first_name_ends_with: String
+  first_name_not_ends_with: String
+  primary_email: String
+  primary_email_not: String
+  primary_email_in: [String!]
+  primary_email_not_in: [String!]
+  primary_email_lt: String
+  primary_email_lte: String
+  primary_email_gt: String
+  primary_email_gte: String
+  primary_email_contains: String
+  primary_email_not_contains: String
+  primary_email_starts_with: String
+  primary_email_not_starts_with: String
+  primary_email_ends_with: String
+  primary_email_not_ends_with: String
+  alt_email: String
+  alt_email_not: String
+  alt_email_in: [String!]
+  alt_email_not_in: [String!]
+  alt_email_lt: String
+  alt_email_lte: String
+  alt_email_gt: String
+  alt_email_gte: String
+  alt_email_contains: String
+  alt_email_not_contains: String
+  alt_email_starts_with: String
+  alt_email_not_starts_with: String
+  alt_email_ends_with: String
+  alt_email_not_ends_with: String
+  password: String
+  password_not: String
+  password_in: [String!]
+  password_not_in: [String!]
+  password_lt: String
+  password_lte: String
+  password_gt: String
+  password_gte: String
+  password_contains: String
+  password_not_contains: String
+  password_starts_with: String
+  password_not_starts_with: String
+  password_ends_with: String
+  password_not_ends_with: String
+  perm_phone_number: String
+  perm_phone_number_not: String
+  perm_phone_number_in: [String!]
+  perm_phone_number_not_in: [String!]
+  perm_phone_number_lt: String
+  perm_phone_number_lte: String
+  perm_phone_number_gt: String
+  perm_phone_number_gte: String
+  perm_phone_number_contains: String
+  perm_phone_number_not_contains: String
+  perm_phone_number_starts_with: String
+  perm_phone_number_not_starts_with: String
+  perm_phone_number_ends_with: String
+  perm_phone_number_not_ends_with: String
+  other_phone_number: String
+  other_phone_number_not: String
+  other_phone_number_in: [String!]
+  other_phone_number_not_in: [String!]
+  other_phone_number_lt: String
+  other_phone_number_lte: String
+  other_phone_number_gt: String
+  other_phone_number_gte: String
+  other_phone_number_contains: String
+  other_phone_number_not_contains: String
+  other_phone_number_starts_with: String
+  other_phone_number_not_starts_with: String
+  other_phone_number_ends_with: String
+  other_phone_number_not_ends_with: String
+  role: String
+  role_not: String
+  role_in: [String!]
+  role_not_in: [String!]
+  role_lt: String
+  role_lte: String
+  role_gt: String
+  role_gte: String
+  role_contains: String
+  role_not_contains: String
+  role_starts_with: String
+  role_not_starts_with: String
+  role_ends_with: String
+  role_not_ends_with: String
+  isDeleted: Boolean
+  isDeleted_not: Boolean
+  updatedAt: DateTime
+  updatedAt_not: DateTime
+  updatedAt_in: [DateTime!]
+  updatedAt_not_in: [DateTime!]
+  updatedAt_lt: DateTime
+  updatedAt_lte: DateTime
+  updatedAt_gt: DateTime
+  updatedAt_gte: DateTime
+  AND: [UserScalarWhereInput!]
+  OR: [UserScalarWhereInput!]
+  NOT: [UserScalarWhereInput!]
+}
+
+type UserSubscriptionPayload {
+  mutation: MutationType!
+  node: User
+  updatedFields: [String!]
+  previousValues: UserPreviousValues
+}
+
+input UserSubscriptionWhereInput {
+  mutation_in: [MutationType!]
+  updatedFields_contains: String
+  updatedFields_contains_every: [String!]
+  updatedFields_contains_some: [String!]
+  node: UserWhereInput
+  AND: [UserSubscriptionWhereInput!]
+  OR: [UserSubscriptionWhereInput!]
+  NOT: [UserSubscriptionWhereInput!]
+}
+
+input UserUpdateDataInput {
+  last_name: String
+  first_name: String
+  primary_email: String
+  alt_email: String
+  password: String
+  perm_phone_number: String
+  other_phone_number: String
+  p_addresses: PermAddressUpdateOneWithoutCreatedByInput
+  role: String
+  isDeleted: Boolean
+}
+
+input UserUpdateInput {
+  last_name: String
+  first_name: String
+  primary_email: String
+  alt_email: String
+  password: String
+  perm_phone_number: String
+  other_phone_number: String
+  p_addresses: PermAddressUpdateOneWithoutCreatedByInput
+  role: String
+  isDeleted: Boolean
+}
+
+input UserUpdateManyDataInput {
+  last_name: String
+  first_name: String
+  primary_email: String
+  alt_email: String
+  password: String
+  perm_phone_number: String
+  other_phone_number: String
+  role: String
+  isDeleted: Boolean
+}
+
+input UserUpdateManyInput {
+  create: [UserCreateInput!]
+  update: [UserUpdateWithWhereUniqueNestedInput!]
+  upsert: [UserUpsertWithWhereUniqueNestedInput!]
+  delete: [UserWhereUniqueInput!]
+  connect: [UserWhereUniqueInput!]
+  set: [UserWhereUniqueInput!]
+  disconnect: [UserWhereUniqueInput!]
+  deleteMany: [UserScalarWhereInput!]
+  updateMany: [UserUpdateManyWithWhereNestedInput!]
+}
+
+input UserUpdateManyMutationInput {
+  last_name: String
+  first_name: String
+  primary_email: String
+  alt_email: String
+  password: String
+  perm_phone_number: String
+  other_phone_number: String
+  role: String
+  isDeleted: Boolean
+}
+
+input UserUpdateManyWithWhereNestedInput {
+  where: UserScalarWhereInput!
+  data: UserUpdateManyDataInput!
+}
+
+input UserUpdateOneWithoutP_addressesInput {
+  create: UserCreateWithoutP_addressesInput
+  update: UserUpdateWithoutP_addressesDataInput
+  upsert: UserUpsertWithoutP_addressesInput
+  delete: Boolean
+  disconnect: Boolean
+  connect: UserWhereUniqueInput
+}
+
+input UserUpdateWithoutP_addressesDataInput {
+  last_name: String
+  first_name: String
+  primary_email: String
+  alt_email: String
+  password: String
+  perm_phone_number: String
+  other_phone_number: String
+  role: String
+  isDeleted: Boolean
+}
+
+input UserUpdateWithWhereUniqueNestedInput {
+  where: UserWhereUniqueInput!
+  data: UserUpdateDataInput!
+}
+
+input UserUpsertWithoutP_addressesInput {
+  update: UserUpdateWithoutP_addressesDataInput!
+  create: UserCreateWithoutP_addressesInput!
+}
+
+input UserUpsertWithWhereUniqueNestedInput {
+  where: UserWhereUniqueInput!
+  update: UserUpdateDataInput!
+  create: UserCreateInput!
+}
+
+input UserWhereInput {
+  id: ID
+  id_not: ID
+  id_in: [ID!]
+  id_not_in: [ID!]
+  id_lt: ID
+  id_lte: ID
+  id_gt: ID
+  id_gte: ID
+  id_contains: ID
+  id_not_contains: ID
+  id_starts_with: ID
+  id_not_starts_with: ID
+  id_ends_with: ID
+  id_not_ends_with: ID
+  last_name: String
+  last_name_not: String
+  last_name_in: [String!]
+  last_name_not_in: [String!]
+  last_name_lt: String
+  last_name_lte: String
+  last_name_gt: String
+  last_name_gte: String
+  last_name_contains: String
+  last_name_not_contains: String
+  last_name_starts_with: String
+  last_name_not_starts_with: String
+  last_name_ends_with: String
+  last_name_not_ends_with: String
+  first_name: String
+  first_name_not: String
+  first_name_in: [String!]
+  first_name_not_in: [String!]
+  first_name_lt: String
+  first_name_lte: String
+  first_name_gt: String
+  first_name_gte: String
+  first_name_contains: String
+  first_name_not_contains: String
+  first_name_starts_with: String
+  first_name_not_starts_with: String
+  first_name_ends_with: String
+  first_name_not_ends_with: String
+  primary_email: String
+  primary_email_not: String
+  primary_email_in: [String!]
+  primary_email_not_in: [String!]
+  primary_email_lt: String
+  primary_email_lte: String
+  primary_email_gt: String
+  primary_email_gte: String
+  primary_email_contains: String
+  primary_email_not_contains: String
+  primary_email_starts_with: String
+  primary_email_not_starts_with: String
+  primary_email_ends_with: String
+  primary_email_not_ends_with: String
+  alt_email: String
+  alt_email_not: String
+  alt_email_in: [String!]
+  alt_email_not_in: [String!]
+  alt_email_lt: String
+  alt_email_lte: String
+  alt_email_gt: String
+  alt_email_gte: String
+  alt_email_contains: String
+  alt_email_not_contains: String
+  alt_email_starts_with: String
+  alt_email_not_starts_with: String
+  alt_email_ends_with: String
+  alt_email_not_ends_with: String
+  password: String
+  password_not: String
+  password_in: [String!]
+  password_not_in: [String!]
+  password_lt: String
+  password_lte: String
+  password_gt: String
+  password_gte: String
+  password_contains: String
+  password_not_contains: String
+  password_starts_with: String
+  password_not_starts_with: String
+  password_ends_with: String
+  password_not_ends_with: String
+  perm_phone_number: String
+  perm_phone_number_not: String
+  perm_phone_number_in: [String!]
+  perm_phone_number_not_in: [String!]
+  perm_phone_number_lt: String
+  perm_phone_number_lte: String
+  perm_phone_number_gt: String
+  perm_phone_number_gte: String
+  perm_phone_number_contains: String
+  perm_phone_number_not_contains: String
+  perm_phone_number_starts_with: String
+  perm_phone_number_not_starts_with: String
+  perm_phone_number_ends_with: String
+  perm_phone_number_not_ends_with: String
+  other_phone_number: String
+  other_phone_number_not: String
+  other_phone_number_in: [String!]
+  other_phone_number_not_in: [String!]
+  other_phone_number_lt: String
+  other_phone_number_lte: String
+  other_phone_number_gt: String
+  other_phone_number_gte: String
+  other_phone_number_contains: String
+  other_phone_number_not_contains: String
+  other_phone_number_starts_with: String
+  other_phone_number_not_starts_with: String
+  other_phone_number_ends_with: String
+  other_phone_number_not_ends_with: String
+  p_addresses: PermAddressWhereInput
+  role: String
+  role_not: String
+  role_in: [String!]
+  role_not_in: [String!]
+  role_lt: String
+  role_lte: String
+  role_gt: String
+  role_gte: String
+  role_contains: String
+  role_not_contains: String
+  role_starts_with: String
+  role_not_starts_with: String
+  role_ends_with: String
+  role_not_ends_with: String
+  isDeleted: Boolean
+  isDeleted_not: Boolean
+  updatedAt: DateTime
+  updatedAt_not: DateTime
+  updatedAt_in: [DateTime!]
+  updatedAt_not_in: [DateTime!]
+  updatedAt_lt: DateTime
+  updatedAt_lte: DateTime
+  updatedAt_gt: DateTime
+  updatedAt_gte: DateTime
+  AND: [UserWhereInput!]
+  OR: [UserWhereInput!]
+  NOT: [UserWhereInput!]
+}
+
+input UserWhereUniqueInput {
+  id: ID
+  primary_email: String
+  alt_email: String
 }
 `
       }

@@ -1,76 +1,142 @@
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
-// will use getOwnerId for any resolver that requires authentication
-const { APP_SECRET, getOwnerId } = require('../utils')
+// will use getUserId for any resolver that requires authentication
+const { APP_SECRET, getUserId } = require('../utils')
 
 async function signup(parent, args, context, info) {
   const password = await bcrypt.hash(args.password, 10)
-  const owner = await context.prisma.createOwner({ ...args, password })
-  const token = jwt.sign({ ownerId: owner.id }, APP_SECRET)
+  const user = await context.prisma.createUser({ ...args, password })
+  const token = jwt.sign({ userId: user.id }, APP_SECRET)
 
   return {
     token,
-    owner,
+    user,
   }
 }
 
 async function login(parent, args, context, info) {
-  const owner = await context.prisma.owner({ primary_email: args.primary_email })
-  if (!owner) {
-    throw new Error('No such owner exists, please create an account.')
+  const user = await context.prisma.user({ primary_email: args.primary_email })
+  if (!user) {
+    throw new Error('No such user exists, please create an account.')
   }
-  const valid = await bcrypt.compare(args.password, owner.password)
+  const valid = await bcrypt.compare(args.password, user.password)
   if (!valid) {
     throw new Error('Invalid password')
   }
 
-  const token = jwt.sign({ ownerId: owner.id }, APP_SECRET)
+  const token = jwt.sign({ userId: user.id }, APP_SECRET)
 
   return {
     token,
-    owner,
+    user,
   }
 }
 
-function createNewOwner(parent, args, context, info) {
-  return context.prisma.createOwner({
-    last_name: args.last_name,
-    first_name: args.first_name,
-    primary_email: args.primary_email,
-    alt_email: args.alt_email,
-    password: args.password,
-    perm_phone_number: args.perm_phone_number,
-    other_phone_number: args.other_phone_number
-  });
+async function createNewUser(parent, args, context, info) {
+  const userId = getUserId(context);
+  const requestingUserIsAdmin = await context.prisma.$exists.user({
+    id: userId,
+    role: 'ADMIN',
+  })
+  if (requestingUserIsAdmin) {
+    return context.prisma.createUser({
+      last_name: args.last_name,
+      first_name: args.first_name,
+      primary_email: args.primary_email,
+      alt_email: args.alt_email,
+      password: args.password,
+      perm_phone_number: args.perm_phone_number,
+      other_phone_number: args.other_phone_number
+    });
+  }
+  throw new Error(
+    'You must be an admin to create a new User.'
+  )
 }
 
 function createPermAddress(parent, args, context, info) {
-  const ownerId = getOwnerId(context)
+  const userId = getUserId(context)
   return context.prisma.createPermAddress({
     address: args.address,
     city: args.city,
     state: args.state,
     zip_code: args.zip_code,
-    createdBy: { connect: { id: ownerId } },
+    createdBy: { connect: { id: userId } },
   })
 }
 
-function createSite(parent, args, context, info) {
-  return context.prisma.createSite({
-    site_number: args.site_number,
-    tl_road_side: args.tl_road_side,
-    tl_address: args.tl_address,
-    land_company: args.land_company,
-    owners_association: args.owners_association,
-    trout_lake_water: args.trout_lake_water,
-    site_phone_number: args.site_phone_number
-  });
+async function createSite(parent, args, context, info) {
+  const userId = getUserId(context);
+  const requestingUserIsAdmin = await context.prisma.$exists.user({
+    id: userId,
+    role: 'ADMIN',
+  })
+  if (requestingUserIsAdmin) {
+    return context.prisma.createSite({
+      site_number: args.site_number,
+      tl_road_side: args.tl_road_side,
+      tl_address: args.tl_address,
+      land_company: args.land_company,
+      owners_association: args.owners_association,
+      trout_lake_water: args.trout_lake_water,
+      site_phone_number: args.site_phone_number
+    });
+  }
+  throw new Error(
+    'You must be an admin to create a new site.'
+  )
+}
+
+async function createBill(parent, args, context, info) {
+  const userId = getUserId(context);
+  const requestingUserIsAdmin = await context.prisma.$exists.user({
+    id: userId,
+    role: 'ADMIN',
+  })
+  if (requestingUserIsAdmin) {
+    return context.prisma.createBill({
+      year: args.year,
+      payment_due: args.payment_due,
+      site: args.site
+    });
+  }
+  throw new Error(
+    'You must be an admin to create bills.'
+  )
+}
+
+async function createPayment(parent, args, context, info) {
+  const userId = getUserId(context);
+  const requestingUserIsAdmin = await context.prisma.$exists.user({
+    id: userId,
+    role: 'ADMIN',
+  })
+  const requestingUserIsOwner = await context.prisma.$exists.bill({
+    site: {
+      users: {
+        id: userId,
+        role: 'OWNER',
+      },
+    }
+  })
+  if (requestingUserIsAdmin || requestingUserIsOwner) {
+    return context.prisma.createPayment({
+      paid: true,
+      payment_type: args.payment_type,
+      bills: args.bills
+    });
+  }
+  throw new Error(
+    'You are trying to pay someone else\'s bills or your are not an admin'
+  )
 }
 
 module.exports = {
   signup,
   login,
-  createNewOwner,
+  createNewUser,
   createSite,
-  createPermAddress
+  createPermAddress,
+  createBill,
+  createPayment
 }

@@ -1,13 +1,13 @@
 
-const owners = (root, args, context, info) => {
+const users = (root, args, context, info) => {
   // database call
-  const ownerIds = root.owners.map(owner => owner.id);
-  const filteredOwners = context.prisma.owners().filter(owner => {
-    return ownerIds.includes(owner.id)
+  const userIds = root.users.map(user => user.id);
+  const filteredUsers = context.prisma.users().filter(user => {
+    return userIds.includes(user.id)
   });
-  return filteredOwners
+  return filteredUsers
 }
 
 module.exports = {
-  owners,
+  users,
 }

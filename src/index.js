@@ -3,13 +3,13 @@ const { prisma } = require('./generated/prisma-client');
 const Query = require('./resolvers/Query')
 const Mutation = require('./resolvers/Mutation')
 // const Subscription = require('./resolvers/Subscription')
-const Owner = require('./resolvers/Owner')
+const User = require('./resolvers/User')
 const PermAddress = require('./resolvers/PermAddress')
 
 const resolvers = {
 	Query,
 	Mutation,
-	Owner,
+	User,
 	PermAddress
 };
 

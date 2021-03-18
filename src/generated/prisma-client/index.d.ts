@@ -17,10 +17,10 @@ export type Maybe<T> = T | undefined | null;
 
 export interface Exists {
   bill: (where?: BillWhereInput) => Promise<boolean>;
-  owner: (where?: OwnerWhereInput) => Promise<boolean>;
   payment: (where?: PaymentWhereInput) => Promise<boolean>;
   permAddress: (where?: PermAddressWhereInput) => Promise<boolean>;
   site: (where?: SiteWhereInput) => Promise<boolean>;
+  user: (where?: UserWhereInput) => Promise<boolean>;
 }
 
 export interface Node {}
@@ -61,25 +61,6 @@ export interface Prisma {
     first?: Int;
     last?: Int;
   }) => BillConnectionPromise;
-  owner: (where: OwnerWhereUniqueInput) => OwnerNullablePromise;
-  owners: (args?: {
-    where?: OwnerWhereInput;
-    orderBy?: OwnerOrderByInput;
-    skip?: Int;
-    after?: String;
-    before?: String;
-    first?: Int;
-    last?: Int;
-  }) => FragmentableArray<Owner>;
-  ownersConnection: (args?: {
-    where?: OwnerWhereInput;
-    orderBy?: OwnerOrderByInput;
-    skip?: Int;
-    after?: String;
-    before?: String;
-    first?: Int;
-    last?: Int;
-  }) => OwnerConnectionPromise;
   payment: (where: PaymentWhereUniqueInput) => PaymentNullablePromise;
   payments: (args?: {
     where?: PaymentWhereInput;
@@ -139,6 +120,25 @@ export interface Prisma {
     first?: Int;
     last?: Int;
   }) => SiteConnectionPromise;
+  user: (where: UserWhereUniqueInput) => UserNullablePromise;
+  users: (args?: {
+    where?: UserWhereInput;
+    orderBy?: UserOrderByInput;
+    skip?: Int;
+    after?: String;
+    before?: String;
+    first?: Int;
+    last?: Int;
+  }) => FragmentableArray<User>;
+  usersConnection: (args?: {
+    where?: UserWhereInput;
+    orderBy?: UserOrderByInput;
+    skip?: Int;
+    after?: String;
+    before?: String;
+    first?: Int;
+    last?: Int;
+  }) => UserConnectionPromise;
   node: (args: { id: ID_Output }) => Node;
 
   /**
@@ -161,22 +161,6 @@ export interface Prisma {
   }) => BillPromise;
   deleteBill: (where: BillWhereUniqueInput) => BillPromise;
   deleteManyBills: (where?: BillWhereInput) => BatchPayloadPromise;
-  createOwner: (data: OwnerCreateInput) => OwnerPromise;
-  updateOwner: (args: {
-    data: OwnerUpdateInput;
-    where: OwnerWhereUniqueInput;
-  }) => OwnerPromise;
-  updateManyOwners: (args: {
-    data: OwnerUpdateManyMutationInput;
-    where?: OwnerWhereInput;
-  }) => BatchPayloadPromise;
-  upsertOwner: (args: {
-    where: OwnerWhereUniqueInput;
-    create: OwnerCreateInput;
-    update: OwnerUpdateInput;
-  }) => OwnerPromise;
-  deleteOwner: (where: OwnerWhereUniqueInput) => OwnerPromise;
-  deleteManyOwners: (where?: OwnerWhereInput) => BatchPayloadPromise;
   createPayment: (data: PaymentCreateInput) => PaymentPromise;
   updatePayment: (args: {
     data: PaymentUpdateInput;
@@ -227,6 +211,22 @@ export interface Prisma {
   }) => SitePromise;
   deleteSite: (where: SiteWhereUniqueInput) => SitePromise;
   deleteManySites: (where?: SiteWhereInput) => BatchPayloadPromise;
+  createUser: (data: UserCreateInput) => UserPromise;
+  updateUser: (args: {
+    data: UserUpdateInput;
+    where: UserWhereUniqueInput;
+  }) => UserPromise;
+  updateManyUsers: (args: {
+    data: UserUpdateManyMutationInput;
+    where?: UserWhereInput;
+  }) => BatchPayloadPromise;
+  upsertUser: (args: {
+    where: UserWhereUniqueInput;
+    create: UserCreateInput;
+    update: UserUpdateInput;
+  }) => UserPromise;
+  deleteUser: (where: UserWhereUniqueInput) => UserPromise;
+  deleteManyUsers: (where?: UserWhereInput) => BatchPayloadPromise;
 
   /**
    * Subscriptions
@@ -239,9 +239,6 @@ export interface Subscription {
   bill: (
     where?: BillSubscriptionWhereInput
   ) => BillSubscriptionPayloadSubscription;
-  owner: (
-    where?: OwnerSubscriptionWhereInput
-  ) => OwnerSubscriptionPayloadSubscription;
   payment: (
     where?: PaymentSubscriptionWhereInput
   ) => PaymentSubscriptionPayloadSubscription;
@@ -251,6 +248,9 @@ export interface Subscription {
   site: (
     where?: SiteSubscriptionWhereInput
   ) => SiteSubscriptionPayloadSubscription;
+  user: (
+    where?: UserSubscriptionWhereInput
+  ) => UserSubscriptionPayloadSubscription;
 }
 
 export interface ClientConstructor<T> {
@@ -261,15 +261,7 @@ export interface ClientConstructor<T> {
  * Types
  */
 
-export type BillOrderByInput =
-  | "id_ASC"
-  | "id_DESC"
-  | "year_ASC"
-  | "year_DESC"
-  | "payment_due_ASC"
-  | "payment_due_DESC";
-
-export type OwnerOrderByInput =
+export type UserOrderByInput =
   | "id_ASC"
   | "id_DESC"
   | "last_name_ASC"
@@ -286,8 +278,22 @@ export type OwnerOrderByInput =
   | "perm_phone_number_DESC"
   | "other_phone_number_ASC"
   | "other_phone_number_DESC"
+  | "role_ASC"
+  | "role_DESC"
+  | "isDeleted_ASC"
+  | "isDeleted_DESC"
   | "updatedAt_ASC"
   | "updatedAt_DESC";
+
+export type BillOrderByInput =
+  | "id_ASC"
+  | "id_DESC"
+  | "year_ASC"
+  | "year_DESC"
+  | "isPaid_ASC"
+  | "isPaid_DESC"
+  | "payment_due_ASC"
+  | "payment_due_DESC";
 
 export type PaymentOrderByInput =
   | "id_ASC"
@@ -335,195 +341,7 @@ export type BillWhereUniqueInput = AtLeastOne<{
   id: Maybe<ID_Input>;
 }>;
 
-export interface BillWhereInput {
-  id?: Maybe<ID_Input>;
-  id_not?: Maybe<ID_Input>;
-  id_in?: Maybe<ID_Input[] | ID_Input>;
-  id_not_in?: Maybe<ID_Input[] | ID_Input>;
-  id_lt?: Maybe<ID_Input>;
-  id_lte?: Maybe<ID_Input>;
-  id_gt?: Maybe<ID_Input>;
-  id_gte?: Maybe<ID_Input>;
-  id_contains?: Maybe<ID_Input>;
-  id_not_contains?: Maybe<ID_Input>;
-  id_starts_with?: Maybe<ID_Input>;
-  id_not_starts_with?: Maybe<ID_Input>;
-  id_ends_with?: Maybe<ID_Input>;
-  id_not_ends_with?: Maybe<ID_Input>;
-  year?: Maybe<Int>;
-  year_not?: Maybe<Int>;
-  year_in?: Maybe<Int[] | Int>;
-  year_not_in?: Maybe<Int[] | Int>;
-  year_lt?: Maybe<Int>;
-  year_lte?: Maybe<Int>;
-  year_gt?: Maybe<Int>;
-  year_gte?: Maybe<Int>;
-  payment?: Maybe<PaymentWhereInput>;
-  payment_due?: Maybe<DateTimeInput>;
-  payment_due_not?: Maybe<DateTimeInput>;
-  payment_due_in?: Maybe<DateTimeInput[] | DateTimeInput>;
-  payment_due_not_in?: Maybe<DateTimeInput[] | DateTimeInput>;
-  payment_due_lt?: Maybe<DateTimeInput>;
-  payment_due_lte?: Maybe<DateTimeInput>;
-  payment_due_gt?: Maybe<DateTimeInput>;
-  payment_due_gte?: Maybe<DateTimeInput>;
-  site?: Maybe<SiteWhereInput>;
-  AND?: Maybe<BillWhereInput[] | BillWhereInput>;
-  OR?: Maybe<BillWhereInput[] | BillWhereInput>;
-  NOT?: Maybe<BillWhereInput[] | BillWhereInput>;
-}
-
-export interface PaymentWhereInput {
-  id?: Maybe<ID_Input>;
-  id_not?: Maybe<ID_Input>;
-  id_in?: Maybe<ID_Input[] | ID_Input>;
-  id_not_in?: Maybe<ID_Input[] | ID_Input>;
-  id_lt?: Maybe<ID_Input>;
-  id_lte?: Maybe<ID_Input>;
-  id_gt?: Maybe<ID_Input>;
-  id_gte?: Maybe<ID_Input>;
-  id_contains?: Maybe<ID_Input>;
-  id_not_contains?: Maybe<ID_Input>;
-  id_starts_with?: Maybe<ID_Input>;
-  id_not_starts_with?: Maybe<ID_Input>;
-  id_ends_with?: Maybe<ID_Input>;
-  id_not_ends_with?: Maybe<ID_Input>;
-  paid?: Maybe<Boolean>;
-  paid_not?: Maybe<Boolean>;
-  payment_type?: Maybe<String>;
-  payment_type_not?: Maybe<String>;
-  payment_type_in?: Maybe<String[] | String>;
-  payment_type_not_in?: Maybe<String[] | String>;
-  payment_type_lt?: Maybe<String>;
-  payment_type_lte?: Maybe<String>;
-  payment_type_gt?: Maybe<String>;
-  payment_type_gte?: Maybe<String>;
-  payment_type_contains?: Maybe<String>;
-  payment_type_not_contains?: Maybe<String>;
-  payment_type_starts_with?: Maybe<String>;
-  payment_type_not_starts_with?: Maybe<String>;
-  payment_type_ends_with?: Maybe<String>;
-  payment_type_not_ends_with?: Maybe<String>;
-  date_paid?: Maybe<DateTimeInput>;
-  date_paid_not?: Maybe<DateTimeInput>;
-  date_paid_in?: Maybe<DateTimeInput[] | DateTimeInput>;
-  date_paid_not_in?: Maybe<DateTimeInput[] | DateTimeInput>;
-  date_paid_lt?: Maybe<DateTimeInput>;
-  date_paid_lte?: Maybe<DateTimeInput>;
-  date_paid_gt?: Maybe<DateTimeInput>;
-  date_paid_gte?: Maybe<DateTimeInput>;
-  bills_every?: Maybe<BillWhereInput>;
-  bills_some?: Maybe<BillWhereInput>;
-  bills_none?: Maybe<BillWhereInput>;
-  AND?: Maybe<PaymentWhereInput[] | PaymentWhereInput>;
-  OR?: Maybe<PaymentWhereInput[] | PaymentWhereInput>;
-  NOT?: Maybe<PaymentWhereInput[] | PaymentWhereInput>;
-}
-
-export interface SiteWhereInput {
-  id?: Maybe<ID_Input>;
-  id_not?: Maybe<ID_Input>;
-  id_in?: Maybe<ID_Input[] | ID_Input>;
-  id_not_in?: Maybe<ID_Input[] | ID_Input>;
-  id_lt?: Maybe<ID_Input>;
-  id_lte?: Maybe<ID_Input>;
-  id_gt?: Maybe<ID_Input>;
-  id_gte?: Maybe<ID_Input>;
-  id_contains?: Maybe<ID_Input>;
-  id_not_contains?: Maybe<ID_Input>;
-  id_starts_with?: Maybe<ID_Input>;
-  id_not_starts_with?: Maybe<ID_Input>;
-  id_ends_with?: Maybe<ID_Input>;
-  id_not_ends_with?: Maybe<ID_Input>;
-  site_number?: Maybe<Int>;
-  site_number_not?: Maybe<Int>;
-  site_number_in?: Maybe<Int[] | Int>;
-  site_number_not_in?: Maybe<Int[] | Int>;
-  site_number_lt?: Maybe<Int>;
-  site_number_lte?: Maybe<Int>;
-  site_number_gt?: Maybe<Int>;
-  site_number_gte?: Maybe<Int>;
-  tl_road_side?: Maybe<String>;
-  tl_road_side_not?: Maybe<String>;
-  tl_road_side_in?: Maybe<String[] | String>;
-  tl_road_side_not_in?: Maybe<String[] | String>;
-  tl_road_side_lt?: Maybe<String>;
-  tl_road_side_lte?: Maybe<String>;
-  tl_road_side_gt?: Maybe<String>;
-  tl_road_side_gte?: Maybe<String>;
-  tl_road_side_contains?: Maybe<String>;
-  tl_road_side_not_contains?: Maybe<String>;
-  tl_road_side_starts_with?: Maybe<String>;
-  tl_road_side_not_starts_with?: Maybe<String>;
-  tl_road_side_ends_with?: Maybe<String>;
-  tl_road_side_not_ends_with?: Maybe<String>;
-  tl_address?: Maybe<String>;
-  tl_address_not?: Maybe<String>;
-  tl_address_in?: Maybe<String[] | String>;
-  tl_address_not_in?: Maybe<String[] | String>;
-  tl_address_lt?: Maybe<String>;
-  tl_address_lte?: Maybe<String>;
-  tl_address_gt?: Maybe<String>;
-  tl_address_gte?: Maybe<String>;
-  tl_address_contains?: Maybe<String>;
-  tl_address_not_contains?: Maybe<String>;
-  tl_address_starts_with?: Maybe<String>;
-  tl_address_not_starts_with?: Maybe<String>;
-  tl_address_ends_with?: Maybe<String>;
-  tl_address_not_ends_with?: Maybe<String>;
-  land_company?: Maybe<String>;
-  land_company_not?: Maybe<String>;
-  land_company_in?: Maybe<String[] | String>;
-  land_company_not_in?: Maybe<String[] | String>;
-  land_company_lt?: Maybe<String>;
-  land_company_lte?: Maybe<String>;
-  land_company_gt?: Maybe<String>;
-  land_company_gte?: Maybe<String>;
-  land_company_contains?: Maybe<String>;
-  land_company_not_contains?: Maybe<String>;
-  land_company_starts_with?: Maybe<String>;
-  land_company_not_starts_with?: Maybe<String>;
-  land_company_ends_with?: Maybe<String>;
-  land_company_not_ends_with?: Maybe<String>;
-  owners_association?: Maybe<String>;
-  owners_association_not?: Maybe<String>;
-  owners_association_in?: Maybe<String[] | String>;
-  owners_association_not_in?: Maybe<String[] | String>;
-  owners_association_lt?: Maybe<String>;
-  owners_association_lte?: Maybe<String>;
-  owners_association_gt?: Maybe<String>;
-  owners_association_gte?: Maybe<String>;
-  owners_association_contains?: Maybe<String>;
-  owners_association_not_contains?: Maybe<String>;
-  owners_association_starts_with?: Maybe<String>;
-  owners_association_not_starts_with?: Maybe<String>;
-  owners_association_ends_with?: Maybe<String>;
-  owners_association_not_ends_with?: Maybe<String>;
-  trout_lake_water?: Maybe<Boolean>;
-  trout_lake_water_not?: Maybe<Boolean>;
-  owners_every?: Maybe<OwnerWhereInput>;
-  owners_some?: Maybe<OwnerWhereInput>;
-  owners_none?: Maybe<OwnerWhereInput>;
-  site_phone_number?: Maybe<String>;
-  site_phone_number_not?: Maybe<String>;
-  site_phone_number_in?: Maybe<String[] | String>;
-  site_phone_number_not_in?: Maybe<String[] | String>;
-  site_phone_number_lt?: Maybe<String>;
-  site_phone_number_lte?: Maybe<String>;
-  site_phone_number_gt?: Maybe<String>;
-  site_phone_number_gte?: Maybe<String>;
-  site_phone_number_contains?: Maybe<String>;
-  site_phone_number_not_contains?: Maybe<String>;
-  site_phone_number_starts_with?: Maybe<String>;
-  site_phone_number_not_starts_with?: Maybe<String>;
-  site_phone_number_ends_with?: Maybe<String>;
-  site_phone_number_not_ends_with?: Maybe<String>;
-  AND?: Maybe<SiteWhereInput[] | SiteWhereInput>;
-  OR?: Maybe<SiteWhereInput[] | SiteWhereInput>;
-  NOT?: Maybe<SiteWhereInput[] | SiteWhereInput>;
-}
-
-export interface OwnerWhereInput {
+export interface UserWhereInput {
   id?: Maybe<ID_Input>;
   id_not?: Maybe<ID_Input>;
   id_in?: Maybe<ID_Input[] | ID_Input>;
@@ -637,6 +455,22 @@ export interface OwnerWhereInput {
   other_phone_number_ends_with?: Maybe<String>;
   other_phone_number_not_ends_with?: Maybe<String>;
   p_addresses?: Maybe<PermAddressWhereInput>;
+  role?: Maybe<String>;
+  role_not?: Maybe<String>;
+  role_in?: Maybe<String[] | String>;
+  role_not_in?: Maybe<String[] | String>;
+  role_lt?: Maybe<String>;
+  role_lte?: Maybe<String>;
+  role_gt?: Maybe<String>;
+  role_gte?: Maybe<String>;
+  role_contains?: Maybe<String>;
+  role_not_contains?: Maybe<String>;
+  role_starts_with?: Maybe<String>;
+  role_not_starts_with?: Maybe<String>;
+  role_ends_with?: Maybe<String>;
+  role_not_ends_with?: Maybe<String>;
+  isDeleted?: Maybe<Boolean>;
+  isDeleted_not?: Maybe<Boolean>;
   updatedAt?: Maybe<DateTimeInput>;
   updatedAt_not?: Maybe<DateTimeInput>;
   updatedAt_in?: Maybe<DateTimeInput[] | DateTimeInput>;
@@ -645,9 +479,9 @@ export interface OwnerWhereInput {
   updatedAt_lte?: Maybe<DateTimeInput>;
   updatedAt_gt?: Maybe<DateTimeInput>;
   updatedAt_gte?: Maybe<DateTimeInput>;
-  AND?: Maybe<OwnerWhereInput[] | OwnerWhereInput>;
-  OR?: Maybe<OwnerWhereInput[] | OwnerWhereInput>;
-  NOT?: Maybe<OwnerWhereInput[] | OwnerWhereInput>;
+  AND?: Maybe<UserWhereInput[] | UserWhereInput>;
+  OR?: Maybe<UserWhereInput[] | UserWhereInput>;
+  NOT?: Maybe<UserWhereInput[] | UserWhereInput>;
 }
 
 export interface PermAddressWhereInput {
@@ -721,17 +555,204 @@ export interface PermAddressWhereInput {
   zip_code_not_starts_with?: Maybe<String>;
   zip_code_ends_with?: Maybe<String>;
   zip_code_not_ends_with?: Maybe<String>;
-  createdBy?: Maybe<OwnerWhereInput>;
+  createdBy?: Maybe<UserWhereInput>;
   AND?: Maybe<PermAddressWhereInput[] | PermAddressWhereInput>;
   OR?: Maybe<PermAddressWhereInput[] | PermAddressWhereInput>;
   NOT?: Maybe<PermAddressWhereInput[] | PermAddressWhereInput>;
 }
 
-export type OwnerWhereUniqueInput = AtLeastOne<{
-  id: Maybe<ID_Input>;
-  primary_email?: Maybe<String>;
-  alt_email?: Maybe<String>;
-}>;
+export interface BillWhereInput {
+  id?: Maybe<ID_Input>;
+  id_not?: Maybe<ID_Input>;
+  id_in?: Maybe<ID_Input[] | ID_Input>;
+  id_not_in?: Maybe<ID_Input[] | ID_Input>;
+  id_lt?: Maybe<ID_Input>;
+  id_lte?: Maybe<ID_Input>;
+  id_gt?: Maybe<ID_Input>;
+  id_gte?: Maybe<ID_Input>;
+  id_contains?: Maybe<ID_Input>;
+  id_not_contains?: Maybe<ID_Input>;
+  id_starts_with?: Maybe<ID_Input>;
+  id_not_starts_with?: Maybe<ID_Input>;
+  id_ends_with?: Maybe<ID_Input>;
+  id_not_ends_with?: Maybe<ID_Input>;
+  year?: Maybe<Int>;
+  year_not?: Maybe<Int>;
+  year_in?: Maybe<Int[] | Int>;
+  year_not_in?: Maybe<Int[] | Int>;
+  year_lt?: Maybe<Int>;
+  year_lte?: Maybe<Int>;
+  year_gt?: Maybe<Int>;
+  year_gte?: Maybe<Int>;
+  isPaid?: Maybe<Boolean>;
+  isPaid_not?: Maybe<Boolean>;
+  payment_due?: Maybe<DateTimeInput>;
+  payment_due_not?: Maybe<DateTimeInput>;
+  payment_due_in?: Maybe<DateTimeInput[] | DateTimeInput>;
+  payment_due_not_in?: Maybe<DateTimeInput[] | DateTimeInput>;
+  payment_due_lt?: Maybe<DateTimeInput>;
+  payment_due_lte?: Maybe<DateTimeInput>;
+  payment_due_gt?: Maybe<DateTimeInput>;
+  payment_due_gte?: Maybe<DateTimeInput>;
+  site?: Maybe<SiteWhereInput>;
+  payment?: Maybe<PaymentWhereInput>;
+  AND?: Maybe<BillWhereInput[] | BillWhereInput>;
+  OR?: Maybe<BillWhereInput[] | BillWhereInput>;
+  NOT?: Maybe<BillWhereInput[] | BillWhereInput>;
+}
+
+export interface SiteWhereInput {
+  id?: Maybe<ID_Input>;
+  id_not?: Maybe<ID_Input>;
+  id_in?: Maybe<ID_Input[] | ID_Input>;
+  id_not_in?: Maybe<ID_Input[] | ID_Input>;
+  id_lt?: Maybe<ID_Input>;
+  id_lte?: Maybe<ID_Input>;
+  id_gt?: Maybe<ID_Input>;
+  id_gte?: Maybe<ID_Input>;
+  id_contains?: Maybe<ID_Input>;
+  id_not_contains?: Maybe<ID_Input>;
+  id_starts_with?: Maybe<ID_Input>;
+  id_not_starts_with?: Maybe<ID_Input>;
+  id_ends_with?: Maybe<ID_Input>;
+  id_not_ends_with?: Maybe<ID_Input>;
+  site_number?: Maybe<Int>;
+  site_number_not?: Maybe<Int>;
+  site_number_in?: Maybe<Int[] | Int>;
+  site_number_not_in?: Maybe<Int[] | Int>;
+  site_number_lt?: Maybe<Int>;
+  site_number_lte?: Maybe<Int>;
+  site_number_gt?: Maybe<Int>;
+  site_number_gte?: Maybe<Int>;
+  tl_road_side?: Maybe<String>;
+  tl_road_side_not?: Maybe<String>;
+  tl_road_side_in?: Maybe<String[] | String>;
+  tl_road_side_not_in?: Maybe<String[] | String>;
+  tl_road_side_lt?: Maybe<String>;
+  tl_road_side_lte?: Maybe<String>;
+  tl_road_side_gt?: Maybe<String>;
+  tl_road_side_gte?: Maybe<String>;
+  tl_road_side_contains?: Maybe<String>;
+  tl_road_side_not_contains?: Maybe<String>;
+  tl_road_side_starts_with?: Maybe<String>;
+  tl_road_side_not_starts_with?: Maybe<String>;
+  tl_road_side_ends_with?: Maybe<String>;
+  tl_road_side_not_ends_with?: Maybe<String>;
+  tl_address?: Maybe<String>;
+  tl_address_not?: Maybe<String>;
+  tl_address_in?: Maybe<String[] | String>;
+  tl_address_not_in?: Maybe<String[] | String>;
+  tl_address_lt?: Maybe<String>;
+  tl_address_lte?: Maybe<String>;
+  tl_address_gt?: Maybe<String>;
+  tl_address_gte?: Maybe<String>;
+  tl_address_contains?: Maybe<String>;
+  tl_address_not_contains?: Maybe<String>;
+  tl_address_starts_with?: Maybe<String>;
+  tl_address_not_starts_with?: Maybe<String>;
+  tl_address_ends_with?: Maybe<String>;
+  tl_address_not_ends_with?: Maybe<String>;
+  land_company?: Maybe<String>;
+  land_company_not?: Maybe<String>;
+  land_company_in?: Maybe<String[] | String>;
+  land_company_not_in?: Maybe<String[] | String>;
+  land_company_lt?: Maybe<String>;
+  land_company_lte?: Maybe<String>;
+  land_company_gt?: Maybe<String>;
+  land_company_gte?: Maybe<String>;
+  land_company_contains?: Maybe<String>;
+  land_company_not_contains?: Maybe<String>;
+  land_company_starts_with?: Maybe<String>;
+  land_company_not_starts_with?: Maybe<String>;
+  land_company_ends_with?: Maybe<String>;
+  land_company_not_ends_with?: Maybe<String>;
+  owners_association?: Maybe<String>;
+  owners_association_not?: Maybe<String>;
+  owners_association_in?: Maybe<String[] | String>;
+  owners_association_not_in?: Maybe<String[] | String>;
+  owners_association_lt?: Maybe<String>;
+  owners_association_lte?: Maybe<String>;
+  owners_association_gt?: Maybe<String>;
+  owners_association_gte?: Maybe<String>;
+  owners_association_contains?: Maybe<String>;
+  owners_association_not_contains?: Maybe<String>;
+  owners_association_starts_with?: Maybe<String>;
+  owners_association_not_starts_with?: Maybe<String>;
+  owners_association_ends_with?: Maybe<String>;
+  owners_association_not_ends_with?: Maybe<String>;
+  trout_lake_water?: Maybe<Boolean>;
+  trout_lake_water_not?: Maybe<Boolean>;
+  users_every?: Maybe<UserWhereInput>;
+  users_some?: Maybe<UserWhereInput>;
+  users_none?: Maybe<UserWhereInput>;
+  site_phone_number?: Maybe<String>;
+  site_phone_number_not?: Maybe<String>;
+  site_phone_number_in?: Maybe<String[] | String>;
+  site_phone_number_not_in?: Maybe<String[] | String>;
+  site_phone_number_lt?: Maybe<String>;
+  site_phone_number_lte?: Maybe<String>;
+  site_phone_number_gt?: Maybe<String>;
+  site_phone_number_gte?: Maybe<String>;
+  site_phone_number_contains?: Maybe<String>;
+  site_phone_number_not_contains?: Maybe<String>;
+  site_phone_number_starts_with?: Maybe<String>;
+  site_phone_number_not_starts_with?: Maybe<String>;
+  site_phone_number_ends_with?: Maybe<String>;
+  site_phone_number_not_ends_with?: Maybe<String>;
+  bills_every?: Maybe<BillWhereInput>;
+  bills_some?: Maybe<BillWhereInput>;
+  bills_none?: Maybe<BillWhereInput>;
+  AND?: Maybe<SiteWhereInput[] | SiteWhereInput>;
+  OR?: Maybe<SiteWhereInput[] | SiteWhereInput>;
+  NOT?: Maybe<SiteWhereInput[] | SiteWhereInput>;
+}
+
+export interface PaymentWhereInput {
+  id?: Maybe<ID_Input>;
+  id_not?: Maybe<ID_Input>;
+  id_in?: Maybe<ID_Input[] | ID_Input>;
+  id_not_in?: Maybe<ID_Input[] | ID_Input>;
+  id_lt?: Maybe<ID_Input>;
+  id_lte?: Maybe<ID_Input>;
+  id_gt?: Maybe<ID_Input>;
+  id_gte?: Maybe<ID_Input>;
+  id_contains?: Maybe<ID_Input>;
+  id_not_contains?: Maybe<ID_Input>;
+  id_starts_with?: Maybe<ID_Input>;
+  id_not_starts_with?: Maybe<ID_Input>;
+  id_ends_with?: Maybe<ID_Input>;
+  id_not_ends_with?: Maybe<ID_Input>;
+  paid?: Maybe<Boolean>;
+  paid_not?: Maybe<Boolean>;
+  payment_type?: Maybe<String>;
+  payment_type_not?: Maybe<String>;
+  payment_type_in?: Maybe<String[] | String>;
+  payment_type_not_in?: Maybe<String[] | String>;
+  payment_type_lt?: Maybe<String>;
+  payment_type_lte?: Maybe<String>;
+  payment_type_gt?: Maybe<String>;
+  payment_type_gte?: Maybe<String>;
+  payment_type_contains?: Maybe<String>;
+  payment_type_not_contains?: Maybe<String>;
+  payment_type_starts_with?: Maybe<String>;
+  payment_type_not_starts_with?: Maybe<String>;
+  payment_type_ends_with?: Maybe<String>;
+  payment_type_not_ends_with?: Maybe<String>;
+  date_paid?: Maybe<DateTimeInput>;
+  date_paid_not?: Maybe<DateTimeInput>;
+  date_paid_in?: Maybe<DateTimeInput[] | DateTimeInput>;
+  date_paid_not_in?: Maybe<DateTimeInput[] | DateTimeInput>;
+  date_paid_lt?: Maybe<DateTimeInput>;
+  date_paid_lte?: Maybe<DateTimeInput>;
+  date_paid_gt?: Maybe<DateTimeInput>;
+  date_paid_gte?: Maybe<DateTimeInput>;
+  bills_every?: Maybe<BillWhereInput>;
+  bills_some?: Maybe<BillWhereInput>;
+  bills_none?: Maybe<BillWhereInput>;
+  AND?: Maybe<PaymentWhereInput[] | PaymentWhereInput>;
+  OR?: Maybe<PaymentWhereInput[] | PaymentWhereInput>;
+  NOT?: Maybe<PaymentWhereInput[] | PaymentWhereInput>;
+}
 
 export type PaymentWhereUniqueInput = AtLeastOne<{
   id: Maybe<ID_Input>;
@@ -746,45 +767,42 @@ export type SiteWhereUniqueInput = AtLeastOne<{
   site_number?: Maybe<Int>;
 }>;
 
+export type UserWhereUniqueInput = AtLeastOne<{
+  id: Maybe<ID_Input>;
+  primary_email?: Maybe<String>;
+  alt_email?: Maybe<String>;
+}>;
+
 export interface BillCreateInput {
   year: Int;
-  payment?: Maybe<PaymentCreateOneWithoutBillsInput>;
+  isPaid?: Maybe<Boolean>;
   payment_due: DateTimeInput;
-  site?: Maybe<SiteCreateOneInput>;
+  site: SiteCreateOneWithoutBillsInput;
+  payment?: Maybe<PaymentCreateOneWithoutBillsInput>;
 }
 
-export interface PaymentCreateOneWithoutBillsInput {
-  create?: Maybe<PaymentCreateWithoutBillsInput>;
-  connect?: Maybe<PaymentWhereUniqueInput>;
-}
-
-export interface PaymentCreateWithoutBillsInput {
-  paid?: Maybe<Boolean>;
-  payment_type: String;
-}
-
-export interface SiteCreateOneInput {
-  create?: Maybe<SiteCreateInput>;
+export interface SiteCreateOneWithoutBillsInput {
+  create?: Maybe<SiteCreateWithoutBillsInput>;
   connect?: Maybe<SiteWhereUniqueInput>;
 }
 
-export interface SiteCreateInput {
+export interface SiteCreateWithoutBillsInput {
   site_number: Int;
   tl_road_side: String;
   tl_address: String;
   land_company: String;
   owners_association: String;
   trout_lake_water: Boolean;
-  owners?: Maybe<OwnerCreateManyInput>;
+  users?: Maybe<UserCreateManyInput>;
   site_phone_number?: Maybe<String>;
 }
 
-export interface OwnerCreateManyInput {
-  create?: Maybe<OwnerCreateInput[] | OwnerCreateInput>;
-  connect?: Maybe<OwnerWhereUniqueInput[] | OwnerWhereUniqueInput>;
+export interface UserCreateManyInput {
+  create?: Maybe<UserCreateInput[] | UserCreateInput>;
+  connect?: Maybe<UserWhereUniqueInput[] | UserWhereUniqueInput>;
 }
 
-export interface OwnerCreateInput {
+export interface UserCreateInput {
   last_name: String;
   first_name: String;
   primary_email: String;
@@ -793,6 +811,8 @@ export interface OwnerCreateInput {
   perm_phone_number?: Maybe<String>;
   other_phone_number?: Maybe<String>;
   p_addresses?: Maybe<PermAddressCreateOneWithoutCreatedByInput>;
+  role?: Maybe<String>;
+  isDeleted?: Maybe<Boolean>;
 }
 
 export interface PermAddressCreateOneWithoutCreatedByInput {
@@ -807,78 +827,68 @@ export interface PermAddressCreateWithoutCreatedByInput {
   zip_code: String;
 }
 
-export interface BillUpdateInput {
-  year?: Maybe<Int>;
-  payment?: Maybe<PaymentUpdateOneWithoutBillsInput>;
-  payment_due?: Maybe<DateTimeInput>;
-  site?: Maybe<SiteUpdateOneInput>;
-}
-
-export interface PaymentUpdateOneWithoutBillsInput {
+export interface PaymentCreateOneWithoutBillsInput {
   create?: Maybe<PaymentCreateWithoutBillsInput>;
-  update?: Maybe<PaymentUpdateWithoutBillsDataInput>;
-  upsert?: Maybe<PaymentUpsertWithoutBillsInput>;
-  delete?: Maybe<Boolean>;
-  disconnect?: Maybe<Boolean>;
   connect?: Maybe<PaymentWhereUniqueInput>;
 }
 
-export interface PaymentUpdateWithoutBillsDataInput {
+export interface PaymentCreateWithoutBillsInput {
   paid?: Maybe<Boolean>;
-  payment_type?: Maybe<String>;
+  payment_type: String;
 }
 
-export interface PaymentUpsertWithoutBillsInput {
-  update: PaymentUpdateWithoutBillsDataInput;
-  create: PaymentCreateWithoutBillsInput;
+export interface BillUpdateInput {
+  year?: Maybe<Int>;
+  isPaid?: Maybe<Boolean>;
+  payment_due?: Maybe<DateTimeInput>;
+  site?: Maybe<SiteUpdateOneRequiredWithoutBillsInput>;
+  payment?: Maybe<PaymentUpdateOneWithoutBillsInput>;
 }
 
-export interface SiteUpdateOneInput {
-  create?: Maybe<SiteCreateInput>;
-  update?: Maybe<SiteUpdateDataInput>;
-  upsert?: Maybe<SiteUpsertNestedInput>;
-  delete?: Maybe<Boolean>;
-  disconnect?: Maybe<Boolean>;
+export interface SiteUpdateOneRequiredWithoutBillsInput {
+  create?: Maybe<SiteCreateWithoutBillsInput>;
+  update?: Maybe<SiteUpdateWithoutBillsDataInput>;
+  upsert?: Maybe<SiteUpsertWithoutBillsInput>;
   connect?: Maybe<SiteWhereUniqueInput>;
 }
 
-export interface SiteUpdateDataInput {
+export interface SiteUpdateWithoutBillsDataInput {
   site_number?: Maybe<Int>;
   tl_road_side?: Maybe<String>;
   tl_address?: Maybe<String>;
   land_company?: Maybe<String>;
   owners_association?: Maybe<String>;
   trout_lake_water?: Maybe<Boolean>;
-  owners?: Maybe<OwnerUpdateManyInput>;
+  users?: Maybe<UserUpdateManyInput>;
   site_phone_number?: Maybe<String>;
 }
 
-export interface OwnerUpdateManyInput {
-  create?: Maybe<OwnerCreateInput[] | OwnerCreateInput>;
+export interface UserUpdateManyInput {
+  create?: Maybe<UserCreateInput[] | UserCreateInput>;
   update?: Maybe<
-    | OwnerUpdateWithWhereUniqueNestedInput[]
-    | OwnerUpdateWithWhereUniqueNestedInput
+    | UserUpdateWithWhereUniqueNestedInput[]
+    | UserUpdateWithWhereUniqueNestedInput
   >;
   upsert?: Maybe<
-    | OwnerUpsertWithWhereUniqueNestedInput[]
-    | OwnerUpsertWithWhereUniqueNestedInput
+    | UserUpsertWithWhereUniqueNestedInput[]
+    | UserUpsertWithWhereUniqueNestedInput
   >;
-  delete?: Maybe<OwnerWhereUniqueInput[] | OwnerWhereUniqueInput>;
-  connect?: Maybe<OwnerWhereUniqueInput[] | OwnerWhereUniqueInput>;
-  set?: Maybe<OwnerWhereUniqueInput[] | OwnerWhereUniqueInput>;
-  disconnect?: Maybe<OwnerWhereUniqueInput[] | OwnerWhereUniqueInput>;
-  deleteMany?: Maybe<OwnerScalarWhereInput[] | OwnerScalarWhereInput>;
+  delete?: Maybe<UserWhereUniqueInput[] | UserWhereUniqueInput>;
+  connect?: Maybe<UserWhereUniqueInput[] | UserWhereUniqueInput>;
+  set?: Maybe<UserWhereUniqueInput[] | UserWhereUniqueInput>;
+  disconnect?: Maybe<UserWhereUniqueInput[] | UserWhereUniqueInput>;
+  deleteMany?: Maybe<UserScalarWhereInput[] | UserScalarWhereInput>;
   updateMany?: Maybe<
-    OwnerUpdateManyWithWhereNestedInput[] | OwnerUpdateManyWithWhereNestedInput
+    UserUpdateManyWithWhereNestedInput[] | UserUpdateManyWithWhereNestedInput
   >;
 }
 
-export interface OwnerUpdateWithWhereUniqueNestedInput {
-  where: OwnerWhereUniqueInput;
-  data: OwnerUpdateDataInput;
+export interface UserUpdateWithWhereUniqueNestedInput {
+  where: UserWhereUniqueInput;
+  data: UserUpdateDataInput;
 }
 
-export interface OwnerUpdateDataInput {
+export interface UserUpdateDataInput {
   last_name?: Maybe<String>;
   first_name?: Maybe<String>;
   primary_email?: Maybe<String>;
@@ -887,6 +897,8 @@ export interface OwnerUpdateDataInput {
   perm_phone_number?: Maybe<String>;
   other_phone_number?: Maybe<String>;
   p_addresses?: Maybe<PermAddressUpdateOneWithoutCreatedByInput>;
+  role?: Maybe<String>;
+  isDeleted?: Maybe<Boolean>;
 }
 
 export interface PermAddressUpdateOneWithoutCreatedByInput {
@@ -910,13 +922,13 @@ export interface PermAddressUpsertWithoutCreatedByInput {
   create: PermAddressCreateWithoutCreatedByInput;
 }
 
-export interface OwnerUpsertWithWhereUniqueNestedInput {
-  where: OwnerWhereUniqueInput;
-  update: OwnerUpdateDataInput;
-  create: OwnerCreateInput;
+export interface UserUpsertWithWhereUniqueNestedInput {
+  where: UserWhereUniqueInput;
+  update: UserUpdateDataInput;
+  create: UserCreateInput;
 }
 
-export interface OwnerScalarWhereInput {
+export interface UserScalarWhereInput {
   id?: Maybe<ID_Input>;
   id_not?: Maybe<ID_Input>;
   id_in?: Maybe<ID_Input[] | ID_Input>;
@@ -1029,6 +1041,22 @@ export interface OwnerScalarWhereInput {
   other_phone_number_not_starts_with?: Maybe<String>;
   other_phone_number_ends_with?: Maybe<String>;
   other_phone_number_not_ends_with?: Maybe<String>;
+  role?: Maybe<String>;
+  role_not?: Maybe<String>;
+  role_in?: Maybe<String[] | String>;
+  role_not_in?: Maybe<String[] | String>;
+  role_lt?: Maybe<String>;
+  role_lte?: Maybe<String>;
+  role_gt?: Maybe<String>;
+  role_gte?: Maybe<String>;
+  role_contains?: Maybe<String>;
+  role_not_contains?: Maybe<String>;
+  role_starts_with?: Maybe<String>;
+  role_not_starts_with?: Maybe<String>;
+  role_ends_with?: Maybe<String>;
+  role_not_ends_with?: Maybe<String>;
+  isDeleted?: Maybe<Boolean>;
+  isDeleted_not?: Maybe<Boolean>;
   updatedAt?: Maybe<DateTimeInput>;
   updatedAt_not?: Maybe<DateTimeInput>;
   updatedAt_in?: Maybe<DateTimeInput[] | DateTimeInput>;
@@ -1037,17 +1065,17 @@ export interface OwnerScalarWhereInput {
   updatedAt_lte?: Maybe<DateTimeInput>;
   updatedAt_gt?: Maybe<DateTimeInput>;
   updatedAt_gte?: Maybe<DateTimeInput>;
-  AND?: Maybe<OwnerScalarWhereInput[] | OwnerScalarWhereInput>;
-  OR?: Maybe<OwnerScalarWhereInput[] | OwnerScalarWhereInput>;
-  NOT?: Maybe<OwnerScalarWhereInput[] | OwnerScalarWhereInput>;
+  AND?: Maybe<UserScalarWhereInput[] | UserScalarWhereInput>;
+  OR?: Maybe<UserScalarWhereInput[] | UserScalarWhereInput>;
+  NOT?: Maybe<UserScalarWhereInput[] | UserScalarWhereInput>;
 }
 
-export interface OwnerUpdateManyWithWhereNestedInput {
-  where: OwnerScalarWhereInput;
-  data: OwnerUpdateManyDataInput;
+export interface UserUpdateManyWithWhereNestedInput {
+  where: UserScalarWhereInput;
+  data: UserUpdateManyDataInput;
 }
 
-export interface OwnerUpdateManyDataInput {
+export interface UserUpdateManyDataInput {
   last_name?: Maybe<String>;
   first_name?: Maybe<String>;
   primary_email?: Maybe<String>;
@@ -1055,37 +1083,38 @@ export interface OwnerUpdateManyDataInput {
   password?: Maybe<String>;
   perm_phone_number?: Maybe<String>;
   other_phone_number?: Maybe<String>;
+  role?: Maybe<String>;
+  isDeleted?: Maybe<Boolean>;
 }
 
-export interface SiteUpsertNestedInput {
-  update: SiteUpdateDataInput;
-  create: SiteCreateInput;
+export interface SiteUpsertWithoutBillsInput {
+  update: SiteUpdateWithoutBillsDataInput;
+  create: SiteCreateWithoutBillsInput;
+}
+
+export interface PaymentUpdateOneWithoutBillsInput {
+  create?: Maybe<PaymentCreateWithoutBillsInput>;
+  update?: Maybe<PaymentUpdateWithoutBillsDataInput>;
+  upsert?: Maybe<PaymentUpsertWithoutBillsInput>;
+  delete?: Maybe<Boolean>;
+  disconnect?: Maybe<Boolean>;
+  connect?: Maybe<PaymentWhereUniqueInput>;
+}
+
+export interface PaymentUpdateWithoutBillsDataInput {
+  paid?: Maybe<Boolean>;
+  payment_type?: Maybe<String>;
+}
+
+export interface PaymentUpsertWithoutBillsInput {
+  update: PaymentUpdateWithoutBillsDataInput;
+  create: PaymentCreateWithoutBillsInput;
 }
 
 export interface BillUpdateManyMutationInput {
   year?: Maybe<Int>;
+  isPaid?: Maybe<Boolean>;
   payment_due?: Maybe<DateTimeInput>;
-}
-
-export interface OwnerUpdateInput {
-  last_name?: Maybe<String>;
-  first_name?: Maybe<String>;
-  primary_email?: Maybe<String>;
-  alt_email?: Maybe<String>;
-  password?: Maybe<String>;
-  perm_phone_number?: Maybe<String>;
-  other_phone_number?: Maybe<String>;
-  p_addresses?: Maybe<PermAddressUpdateOneWithoutCreatedByInput>;
-}
-
-export interface OwnerUpdateManyMutationInput {
-  last_name?: Maybe<String>;
-  first_name?: Maybe<String>;
-  primary_email?: Maybe<String>;
-  alt_email?: Maybe<String>;
-  password?: Maybe<String>;
-  perm_phone_number?: Maybe<String>;
-  other_phone_number?: Maybe<String>;
 }
 
 export interface PaymentCreateInput {
@@ -1103,8 +1132,9 @@ export interface BillCreateManyWithoutPaymentInput {
 
 export interface BillCreateWithoutPaymentInput {
   year: Int;
+  isPaid?: Maybe<Boolean>;
   payment_due: DateTimeInput;
-  site?: Maybe<SiteCreateOneInput>;
+  site: SiteCreateOneWithoutBillsInput;
 }
 
 export interface PaymentUpdateInput {
@@ -1142,8 +1172,9 @@ export interface BillUpdateWithWhereUniqueWithoutPaymentInput {
 
 export interface BillUpdateWithoutPaymentDataInput {
   year?: Maybe<Int>;
+  isPaid?: Maybe<Boolean>;
   payment_due?: Maybe<DateTimeInput>;
-  site?: Maybe<SiteUpdateOneInput>;
+  site?: Maybe<SiteUpdateOneRequiredWithoutBillsInput>;
 }
 
 export interface BillUpsertWithWhereUniqueWithoutPaymentInput {
@@ -1175,6 +1206,8 @@ export interface BillScalarWhereInput {
   year_lte?: Maybe<Int>;
   year_gt?: Maybe<Int>;
   year_gte?: Maybe<Int>;
+  isPaid?: Maybe<Boolean>;
+  isPaid_not?: Maybe<Boolean>;
   payment_due?: Maybe<DateTimeInput>;
   payment_due_not?: Maybe<DateTimeInput>;
   payment_due_in?: Maybe<DateTimeInput[] | DateTimeInput>;
@@ -1195,6 +1228,7 @@ export interface BillUpdateManyWithWhereNestedInput {
 
 export interface BillUpdateManyDataInput {
   year?: Maybe<Int>;
+  isPaid?: Maybe<Boolean>;
   payment_due?: Maybe<DateTimeInput>;
 }
 
@@ -1208,15 +1242,15 @@ export interface PermAddressCreateInput {
   city: String;
   state: String;
   zip_code: String;
-  createdBy?: Maybe<OwnerCreateOneWithoutP_addressesInput>;
+  createdBy?: Maybe<UserCreateOneWithoutP_addressesInput>;
 }
 
-export interface OwnerCreateOneWithoutP_addressesInput {
-  create?: Maybe<OwnerCreateWithoutP_addressesInput>;
-  connect?: Maybe<OwnerWhereUniqueInput>;
+export interface UserCreateOneWithoutP_addressesInput {
+  create?: Maybe<UserCreateWithoutP_addressesInput>;
+  connect?: Maybe<UserWhereUniqueInput>;
 }
 
-export interface OwnerCreateWithoutP_addressesInput {
+export interface UserCreateWithoutP_addressesInput {
   last_name: String;
   first_name: String;
   primary_email: String;
@@ -1224,6 +1258,8 @@ export interface OwnerCreateWithoutP_addressesInput {
   password: String;
   perm_phone_number?: Maybe<String>;
   other_phone_number?: Maybe<String>;
+  role?: Maybe<String>;
+  isDeleted?: Maybe<Boolean>;
 }
 
 export interface PermAddressUpdateInput {
@@ -1231,19 +1267,19 @@ export interface PermAddressUpdateInput {
   city?: Maybe<String>;
   state?: Maybe<String>;
   zip_code?: Maybe<String>;
-  createdBy?: Maybe<OwnerUpdateOneWithoutP_addressesInput>;
+  createdBy?: Maybe<UserUpdateOneWithoutP_addressesInput>;
 }
 
-export interface OwnerUpdateOneWithoutP_addressesInput {
-  create?: Maybe<OwnerCreateWithoutP_addressesInput>;
-  update?: Maybe<OwnerUpdateWithoutP_addressesDataInput>;
-  upsert?: Maybe<OwnerUpsertWithoutP_addressesInput>;
+export interface UserUpdateOneWithoutP_addressesInput {
+  create?: Maybe<UserCreateWithoutP_addressesInput>;
+  update?: Maybe<UserUpdateWithoutP_addressesDataInput>;
+  upsert?: Maybe<UserUpsertWithoutP_addressesInput>;
   delete?: Maybe<Boolean>;
   disconnect?: Maybe<Boolean>;
-  connect?: Maybe<OwnerWhereUniqueInput>;
+  connect?: Maybe<UserWhereUniqueInput>;
 }
 
-export interface OwnerUpdateWithoutP_addressesDataInput {
+export interface UserUpdateWithoutP_addressesDataInput {
   last_name?: Maybe<String>;
   first_name?: Maybe<String>;
   primary_email?: Maybe<String>;
@@ -1251,11 +1287,13 @@ export interface OwnerUpdateWithoutP_addressesDataInput {
   password?: Maybe<String>;
   perm_phone_number?: Maybe<String>;
   other_phone_number?: Maybe<String>;
+  role?: Maybe<String>;
+  isDeleted?: Maybe<Boolean>;
 }
 
-export interface OwnerUpsertWithoutP_addressesInput {
-  update: OwnerUpdateWithoutP_addressesDataInput;
-  create: OwnerCreateWithoutP_addressesInput;
+export interface UserUpsertWithoutP_addressesInput {
+  update: UserUpdateWithoutP_addressesDataInput;
+  create: UserCreateWithoutP_addressesInput;
 }
 
 export interface PermAddressUpdateManyMutationInput {
@@ -1265,6 +1303,30 @@ export interface PermAddressUpdateManyMutationInput {
   zip_code?: Maybe<String>;
 }
 
+export interface SiteCreateInput {
+  site_number: Int;
+  tl_road_side: String;
+  tl_address: String;
+  land_company: String;
+  owners_association: String;
+  trout_lake_water: Boolean;
+  users?: Maybe<UserCreateManyInput>;
+  site_phone_number?: Maybe<String>;
+  bills?: Maybe<BillCreateManyWithoutSiteInput>;
+}
+
+export interface BillCreateManyWithoutSiteInput {
+  create?: Maybe<BillCreateWithoutSiteInput[] | BillCreateWithoutSiteInput>;
+  connect?: Maybe<BillWhereUniqueInput[] | BillWhereUniqueInput>;
+}
+
+export interface BillCreateWithoutSiteInput {
+  year: Int;
+  isPaid?: Maybe<Boolean>;
+  payment_due: DateTimeInput;
+  payment?: Maybe<PaymentCreateOneWithoutBillsInput>;
+}
+
 export interface SiteUpdateInput {
   site_number?: Maybe<Int>;
   tl_road_side?: Maybe<String>;
@@ -1272,8 +1334,47 @@ export interface SiteUpdateInput {
   land_company?: Maybe<String>;
   owners_association?: Maybe<String>;
   trout_lake_water?: Maybe<Boolean>;
-  owners?: Maybe<OwnerUpdateManyInput>;
+  users?: Maybe<UserUpdateManyInput>;
   site_phone_number?: Maybe<String>;
+  bills?: Maybe<BillUpdateManyWithoutSiteInput>;
+}
+
+export interface BillUpdateManyWithoutSiteInput {
+  create?: Maybe<BillCreateWithoutSiteInput[] | BillCreateWithoutSiteInput>;
+  delete?: Maybe<BillWhereUniqueInput[] | BillWhereUniqueInput>;
+  connect?: Maybe<BillWhereUniqueInput[] | BillWhereUniqueInput>;
+  set?: Maybe<BillWhereUniqueInput[] | BillWhereUniqueInput>;
+  disconnect?: Maybe<BillWhereUniqueInput[] | BillWhereUniqueInput>;
+  update?: Maybe<
+    | BillUpdateWithWhereUniqueWithoutSiteInput[]
+    | BillUpdateWithWhereUniqueWithoutSiteInput
+  >;
+  upsert?: Maybe<
+    | BillUpsertWithWhereUniqueWithoutSiteInput[]
+    | BillUpsertWithWhereUniqueWithoutSiteInput
+  >;
+  deleteMany?: Maybe<BillScalarWhereInput[] | BillScalarWhereInput>;
+  updateMany?: Maybe<
+    BillUpdateManyWithWhereNestedInput[] | BillUpdateManyWithWhereNestedInput
+  >;
+}
+
+export interface BillUpdateWithWhereUniqueWithoutSiteInput {
+  where: BillWhereUniqueInput;
+  data: BillUpdateWithoutSiteDataInput;
+}
+
+export interface BillUpdateWithoutSiteDataInput {
+  year?: Maybe<Int>;
+  isPaid?: Maybe<Boolean>;
+  payment_due?: Maybe<DateTimeInput>;
+  payment?: Maybe<PaymentUpdateOneWithoutBillsInput>;
+}
+
+export interface BillUpsertWithWhereUniqueWithoutSiteInput {
+  where: BillWhereUniqueInput;
+  update: BillUpdateWithoutSiteDataInput;
+  create: BillCreateWithoutSiteInput;
 }
 
 export interface SiteUpdateManyMutationInput {
@@ -1286,6 +1387,31 @@ export interface SiteUpdateManyMutationInput {
   site_phone_number?: Maybe<String>;
 }
 
+export interface UserUpdateInput {
+  last_name?: Maybe<String>;
+  first_name?: Maybe<String>;
+  primary_email?: Maybe<String>;
+  alt_email?: Maybe<String>;
+  password?: Maybe<String>;
+  perm_phone_number?: Maybe<String>;
+  other_phone_number?: Maybe<String>;
+  p_addresses?: Maybe<PermAddressUpdateOneWithoutCreatedByInput>;
+  role?: Maybe<String>;
+  isDeleted?: Maybe<Boolean>;
+}
+
+export interface UserUpdateManyMutationInput {
+  last_name?: Maybe<String>;
+  first_name?: Maybe<String>;
+  primary_email?: Maybe<String>;
+  alt_email?: Maybe<String>;
+  password?: Maybe<String>;
+  perm_phone_number?: Maybe<String>;
+  other_phone_number?: Maybe<String>;
+  role?: Maybe<String>;
+  isDeleted?: Maybe<Boolean>;
+}
+
 export interface BillSubscriptionWhereInput {
   mutation_in?: Maybe<MutationType[] | MutationType>;
   updatedFields_contains?: Maybe<String>;
@@ -1295,17 +1421,6 @@ export interface BillSubscriptionWhereInput {
   AND?: Maybe<BillSubscriptionWhereInput[] | BillSubscriptionWhereInput>;
   OR?: Maybe<BillSubscriptionWhereInput[] | BillSubscriptionWhereInput>;
   NOT?: Maybe<BillSubscriptionWhereInput[] | BillSubscriptionWhereInput>;
-}
-
-export interface OwnerSubscriptionWhereInput {
-  mutation_in?: Maybe<MutationType[] | MutationType>;
-  updatedFields_contains?: Maybe<String>;
-  updatedFields_contains_every?: Maybe<String[] | String>;
-  updatedFields_contains_some?: Maybe<String[] | String>;
-  node?: Maybe<OwnerWhereInput>;
-  AND?: Maybe<OwnerSubscriptionWhereInput[] | OwnerSubscriptionWhereInput>;
-  OR?: Maybe<OwnerSubscriptionWhereInput[] | OwnerSubscriptionWhereInput>;
-  NOT?: Maybe<OwnerSubscriptionWhereInput[] | OwnerSubscriptionWhereInput>;
 }
 
 export interface PaymentSubscriptionWhereInput {
@@ -1347,6 +1462,17 @@ export interface SiteSubscriptionWhereInput {
   NOT?: Maybe<SiteSubscriptionWhereInput[] | SiteSubscriptionWhereInput>;
 }
 
+export interface UserSubscriptionWhereInput {
+  mutation_in?: Maybe<MutationType[] | MutationType>;
+  updatedFields_contains?: Maybe<String>;
+  updatedFields_contains_every?: Maybe<String[] | String>;
+  updatedFields_contains_some?: Maybe<String[] | String>;
+  node?: Maybe<UserWhereInput>;
+  AND?: Maybe<UserSubscriptionWhereInput[] | UserSubscriptionWhereInput>;
+  OR?: Maybe<UserSubscriptionWhereInput[] | UserSubscriptionWhereInput>;
+  NOT?: Maybe<UserSubscriptionWhereInput[] | UserSubscriptionWhereInput>;
+}
+
 export interface NodeNode {
   id: ID_Output;
 }
@@ -1354,15 +1480,17 @@ export interface NodeNode {
 export interface Bill {
   id: ID_Output;
   year: Int;
+  isPaid: Boolean;
   payment_due: DateTimeOutput;
 }
 
 export interface BillPromise extends Promise<Bill>, Fragmentable {
   id: () => Promise<ID_Output>;
   year: () => Promise<Int>;
-  payment: <T = PaymentPromise>() => T;
+  isPaid: () => Promise<Boolean>;
   payment_due: () => Promise<DateTimeOutput>;
   site: <T = SitePromise>() => T;
+  payment: <T = PaymentPromise>() => T;
 }
 
 export interface BillSubscription
@@ -1370,9 +1498,10 @@ export interface BillSubscription
     Fragmentable {
   id: () => Promise<AsyncIterator<ID_Output>>;
   year: () => Promise<AsyncIterator<Int>>;
-  payment: <T = PaymentSubscription>() => T;
+  isPaid: () => Promise<AsyncIterator<Boolean>>;
   payment_due: () => Promise<AsyncIterator<DateTimeOutput>>;
   site: <T = SiteSubscription>() => T;
+  payment: <T = PaymentSubscription>() => T;
 }
 
 export interface BillNullablePromise
@@ -1380,9 +1509,214 @@ export interface BillNullablePromise
     Fragmentable {
   id: () => Promise<ID_Output>;
   year: () => Promise<Int>;
-  payment: <T = PaymentPromise>() => T;
+  isPaid: () => Promise<Boolean>;
   payment_due: () => Promise<DateTimeOutput>;
   site: <T = SitePromise>() => T;
+  payment: <T = PaymentPromise>() => T;
+}
+
+export interface Site {
+  id: ID_Output;
+  site_number: Int;
+  tl_road_side: String;
+  tl_address: String;
+  land_company: String;
+  owners_association: String;
+  trout_lake_water: Boolean;
+  site_phone_number?: String;
+}
+
+export interface SitePromise extends Promise<Site>, Fragmentable {
+  id: () => Promise<ID_Output>;
+  site_number: () => Promise<Int>;
+  tl_road_side: () => Promise<String>;
+  tl_address: () => Promise<String>;
+  land_company: () => Promise<String>;
+  owners_association: () => Promise<String>;
+  trout_lake_water: () => Promise<Boolean>;
+  users: <T = FragmentableArray<User>>(args?: {
+    where?: UserWhereInput;
+    orderBy?: UserOrderByInput;
+    skip?: Int;
+    after?: String;
+    before?: String;
+    first?: Int;
+    last?: Int;
+  }) => T;
+  site_phone_number: () => Promise<String>;
+  bills: <T = FragmentableArray<Bill>>(args?: {
+    where?: BillWhereInput;
+    orderBy?: BillOrderByInput;
+    skip?: Int;
+    after?: String;
+    before?: String;
+    first?: Int;
+    last?: Int;
+  }) => T;
+}
+
+export interface SiteSubscription
+  extends Promise<AsyncIterator<Site>>,
+    Fragmentable {
+  id: () => Promise<AsyncIterator<ID_Output>>;
+  site_number: () => Promise<AsyncIterator<Int>>;
+  tl_road_side: () => Promise<AsyncIterator<String>>;
+  tl_address: () => Promise<AsyncIterator<String>>;
+  land_company: () => Promise<AsyncIterator<String>>;
+  owners_association: () => Promise<AsyncIterator<String>>;
+  trout_lake_water: () => Promise<AsyncIterator<Boolean>>;
+  users: <T = Promise<AsyncIterator<UserSubscription>>>(args?: {
+    where?: UserWhereInput;
+    orderBy?: UserOrderByInput;
+    skip?: Int;
+    after?: String;
+    before?: String;
+    first?: Int;
+    last?: Int;
+  }) => T;
+  site_phone_number: () => Promise<AsyncIterator<String>>;
+  bills: <T = Promise<AsyncIterator<BillSubscription>>>(args?: {
+    where?: BillWhereInput;
+    orderBy?: BillOrderByInput;
+    skip?: Int;
+    after?: String;
+    before?: String;
+    first?: Int;
+    last?: Int;
+  }) => T;
+}
+
+export interface SiteNullablePromise
+  extends Promise<Site | null>,
+    Fragmentable {
+  id: () => Promise<ID_Output>;
+  site_number: () => Promise<Int>;
+  tl_road_side: () => Promise<String>;
+  tl_address: () => Promise<String>;
+  land_company: () => Promise<String>;
+  owners_association: () => Promise<String>;
+  trout_lake_water: () => Promise<Boolean>;
+  users: <T = FragmentableArray<User>>(args?: {
+    where?: UserWhereInput;
+    orderBy?: UserOrderByInput;
+    skip?: Int;
+    after?: String;
+    before?: String;
+    first?: Int;
+    last?: Int;
+  }) => T;
+  site_phone_number: () => Promise<String>;
+  bills: <T = FragmentableArray<Bill>>(args?: {
+    where?: BillWhereInput;
+    orderBy?: BillOrderByInput;
+    skip?: Int;
+    after?: String;
+    before?: String;
+    first?: Int;
+    last?: Int;
+  }) => T;
+}
+
+export interface User {
+  id: ID_Output;
+  last_name: String;
+  first_name: String;
+  primary_email: String;
+  alt_email?: String;
+  password: String;
+  perm_phone_number?: String;
+  other_phone_number?: String;
+  role: String;
+  isDeleted: Boolean;
+  updatedAt: DateTimeOutput;
+}
+
+export interface UserPromise extends Promise<User>, Fragmentable {
+  id: () => Promise<ID_Output>;
+  last_name: () => Promise<String>;
+  first_name: () => Promise<String>;
+  primary_email: () => Promise<String>;
+  alt_email: () => Promise<String>;
+  password: () => Promise<String>;
+  perm_phone_number: () => Promise<String>;
+  other_phone_number: () => Promise<String>;
+  p_addresses: <T = PermAddressPromise>() => T;
+  role: () => Promise<String>;
+  isDeleted: () => Promise<Boolean>;
+  updatedAt: () => Promise<DateTimeOutput>;
+}
+
+export interface UserSubscription
+  extends Promise<AsyncIterator<User>>,
+    Fragmentable {
+  id: () => Promise<AsyncIterator<ID_Output>>;
+  last_name: () => Promise<AsyncIterator<String>>;
+  first_name: () => Promise<AsyncIterator<String>>;
+  primary_email: () => Promise<AsyncIterator<String>>;
+  alt_email: () => Promise<AsyncIterator<String>>;
+  password: () => Promise<AsyncIterator<String>>;
+  perm_phone_number: () => Promise<AsyncIterator<String>>;
+  other_phone_number: () => Promise<AsyncIterator<String>>;
+  p_addresses: <T = PermAddressSubscription>() => T;
+  role: () => Promise<AsyncIterator<String>>;
+  isDeleted: () => Promise<AsyncIterator<Boolean>>;
+  updatedAt: () => Promise<AsyncIterator<DateTimeOutput>>;
+}
+
+export interface UserNullablePromise
+  extends Promise<User | null>,
+    Fragmentable {
+  id: () => Promise<ID_Output>;
+  last_name: () => Promise<String>;
+  first_name: () => Promise<String>;
+  primary_email: () => Promise<String>;
+  alt_email: () => Promise<String>;
+  password: () => Promise<String>;
+  perm_phone_number: () => Promise<String>;
+  other_phone_number: () => Promise<String>;
+  p_addresses: <T = PermAddressPromise>() => T;
+  role: () => Promise<String>;
+  isDeleted: () => Promise<Boolean>;
+  updatedAt: () => Promise<DateTimeOutput>;
+}
+
+export interface PermAddress {
+  id: ID_Output;
+  address: String;
+  city: String;
+  state: String;
+  zip_code: String;
+}
+
+export interface PermAddressPromise extends Promise<PermAddress>, Fragmentable {
+  id: () => Promise<ID_Output>;
+  address: () => Promise<String>;
+  city: () => Promise<String>;
+  state: () => Promise<String>;
+  zip_code: () => Promise<String>;
+  createdBy: <T = UserPromise>() => T;
+}
+
+export interface PermAddressSubscription
+  extends Promise<AsyncIterator<PermAddress>>,
+    Fragmentable {
+  id: () => Promise<AsyncIterator<ID_Output>>;
+  address: () => Promise<AsyncIterator<String>>;
+  city: () => Promise<AsyncIterator<String>>;
+  state: () => Promise<AsyncIterator<String>>;
+  zip_code: () => Promise<AsyncIterator<String>>;
+  createdBy: <T = UserSubscription>() => T;
+}
+
+export interface PermAddressNullablePromise
+  extends Promise<PermAddress | null>,
+    Fragmentable {
+  id: () => Promise<ID_Output>;
+  address: () => Promise<String>;
+  city: () => Promise<String>;
+  state: () => Promise<String>;
+  zip_code: () => Promise<String>;
+  createdBy: <T = UserPromise>() => T;
 }
 
 export interface Payment {
@@ -1442,175 +1776,6 @@ export interface PaymentNullablePromise
     first?: Int;
     last?: Int;
   }) => T;
-}
-
-export interface Site {
-  id: ID_Output;
-  site_number: Int;
-  tl_road_side: String;
-  tl_address: String;
-  land_company: String;
-  owners_association: String;
-  trout_lake_water: Boolean;
-  site_phone_number?: String;
-}
-
-export interface SitePromise extends Promise<Site>, Fragmentable {
-  id: () => Promise<ID_Output>;
-  site_number: () => Promise<Int>;
-  tl_road_side: () => Promise<String>;
-  tl_address: () => Promise<String>;
-  land_company: () => Promise<String>;
-  owners_association: () => Promise<String>;
-  trout_lake_water: () => Promise<Boolean>;
-  owners: <T = FragmentableArray<Owner>>(args?: {
-    where?: OwnerWhereInput;
-    orderBy?: OwnerOrderByInput;
-    skip?: Int;
-    after?: String;
-    before?: String;
-    first?: Int;
-    last?: Int;
-  }) => T;
-  site_phone_number: () => Promise<String>;
-}
-
-export interface SiteSubscription
-  extends Promise<AsyncIterator<Site>>,
-    Fragmentable {
-  id: () => Promise<AsyncIterator<ID_Output>>;
-  site_number: () => Promise<AsyncIterator<Int>>;
-  tl_road_side: () => Promise<AsyncIterator<String>>;
-  tl_address: () => Promise<AsyncIterator<String>>;
-  land_company: () => Promise<AsyncIterator<String>>;
-  owners_association: () => Promise<AsyncIterator<String>>;
-  trout_lake_water: () => Promise<AsyncIterator<Boolean>>;
-  owners: <T = Promise<AsyncIterator<OwnerSubscription>>>(args?: {
-    where?: OwnerWhereInput;
-    orderBy?: OwnerOrderByInput;
-    skip?: Int;
-    after?: String;
-    before?: String;
-    first?: Int;
-    last?: Int;
-  }) => T;
-  site_phone_number: () => Promise<AsyncIterator<String>>;
-}
-
-export interface SiteNullablePromise
-  extends Promise<Site | null>,
-    Fragmentable {
-  id: () => Promise<ID_Output>;
-  site_number: () => Promise<Int>;
-  tl_road_side: () => Promise<String>;
-  tl_address: () => Promise<String>;
-  land_company: () => Promise<String>;
-  owners_association: () => Promise<String>;
-  trout_lake_water: () => Promise<Boolean>;
-  owners: <T = FragmentableArray<Owner>>(args?: {
-    where?: OwnerWhereInput;
-    orderBy?: OwnerOrderByInput;
-    skip?: Int;
-    after?: String;
-    before?: String;
-    first?: Int;
-    last?: Int;
-  }) => T;
-  site_phone_number: () => Promise<String>;
-}
-
-export interface Owner {
-  id: ID_Output;
-  last_name: String;
-  first_name: String;
-  primary_email: String;
-  alt_email?: String;
-  password: String;
-  perm_phone_number?: String;
-  other_phone_number?: String;
-  updatedAt: DateTimeOutput;
-}
-
-export interface OwnerPromise extends Promise<Owner>, Fragmentable {
-  id: () => Promise<ID_Output>;
-  last_name: () => Promise<String>;
-  first_name: () => Promise<String>;
-  primary_email: () => Promise<String>;
-  alt_email: () => Promise<String>;
-  password: () => Promise<String>;
-  perm_phone_number: () => Promise<String>;
-  other_phone_number: () => Promise<String>;
-  p_addresses: <T = PermAddressPromise>() => T;
-  updatedAt: () => Promise<DateTimeOutput>;
-}
-
-export interface OwnerSubscription
-  extends Promise<AsyncIterator<Owner>>,
-    Fragmentable {
-  id: () => Promise<AsyncIterator<ID_Output>>;
-  last_name: () => Promise<AsyncIterator<String>>;
-  first_name: () => Promise<AsyncIterator<String>>;
-  primary_email: () => Promise<AsyncIterator<String>>;
-  alt_email: () => Promise<AsyncIterator<String>>;
-  password: () => Promise<AsyncIterator<String>>;
-  perm_phone_number: () => Promise<AsyncIterator<String>>;
-  other_phone_number: () => Promise<AsyncIterator<String>>;
-  p_addresses: <T = PermAddressSubscription>() => T;
-  updatedAt: () => Promise<AsyncIterator<DateTimeOutput>>;
-}
-
-export interface OwnerNullablePromise
-  extends Promise<Owner | null>,
-    Fragmentable {
-  id: () => Promise<ID_Output>;
-  last_name: () => Promise<String>;
-  first_name: () => Promise<String>;
-  primary_email: () => Promise<String>;
-  alt_email: () => Promise<String>;
-  password: () => Promise<String>;
-  perm_phone_number: () => Promise<String>;
-  other_phone_number: () => Promise<String>;
-  p_addresses: <T = PermAddressPromise>() => T;
-  updatedAt: () => Promise<DateTimeOutput>;
-}
-
-export interface PermAddress {
-  id: ID_Output;
-  address: String;
-  city: String;
-  state: String;
-  zip_code: String;
-}
-
-export interface PermAddressPromise extends Promise<PermAddress>, Fragmentable {
-  id: () => Promise<ID_Output>;
-  address: () => Promise<String>;
-  city: () => Promise<String>;
-  state: () => Promise<String>;
-  zip_code: () => Promise<String>;
-  createdBy: <T = OwnerPromise>() => T;
-}
-
-export interface PermAddressSubscription
-  extends Promise<AsyncIterator<PermAddress>>,
-    Fragmentable {
-  id: () => Promise<AsyncIterator<ID_Output>>;
-  address: () => Promise<AsyncIterator<String>>;
-  city: () => Promise<AsyncIterator<String>>;
-  state: () => Promise<AsyncIterator<String>>;
-  zip_code: () => Promise<AsyncIterator<String>>;
-  createdBy: <T = OwnerSubscription>() => T;
-}
-
-export interface PermAddressNullablePromise
-  extends Promise<PermAddress | null>,
-    Fragmentable {
-  id: () => Promise<ID_Output>;
-  address: () => Promise<String>;
-  city: () => Promise<String>;
-  state: () => Promise<String>;
-  zip_code: () => Promise<String>;
-  createdBy: <T = OwnerPromise>() => T;
 }
 
 export interface BillConnection {
@@ -1686,60 +1851,6 @@ export interface AggregateBillPromise
 
 export interface AggregateBillSubscription
   extends Promise<AsyncIterator<AggregateBill>>,
-    Fragmentable {
-  count: () => Promise<AsyncIterator<Int>>;
-}
-
-export interface OwnerConnection {
-  pageInfo: PageInfo;
-  edges: OwnerEdge[];
-}
-
-export interface OwnerConnectionPromise
-  extends Promise<OwnerConnection>,
-    Fragmentable {
-  pageInfo: <T = PageInfoPromise>() => T;
-  edges: <T = FragmentableArray<OwnerEdge>>() => T;
-  aggregate: <T = AggregateOwnerPromise>() => T;
-}
-
-export interface OwnerConnectionSubscription
-  extends Promise<AsyncIterator<OwnerConnection>>,
-    Fragmentable {
-  pageInfo: <T = PageInfoSubscription>() => T;
-  edges: <T = Promise<AsyncIterator<OwnerEdgeSubscription>>>() => T;
-  aggregate: <T = AggregateOwnerSubscription>() => T;
-}
-
-export interface OwnerEdge {
-  node: Owner;
-  cursor: String;
-}
-
-export interface OwnerEdgePromise extends Promise<OwnerEdge>, Fragmentable {
-  node: <T = OwnerPromise>() => T;
-  cursor: () => Promise<String>;
-}
-
-export interface OwnerEdgeSubscription
-  extends Promise<AsyncIterator<OwnerEdge>>,
-    Fragmentable {
-  node: <T = OwnerSubscription>() => T;
-  cursor: () => Promise<AsyncIterator<String>>;
-}
-
-export interface AggregateOwner {
-  count: Int;
-}
-
-export interface AggregateOwnerPromise
-  extends Promise<AggregateOwner>,
-    Fragmentable {
-  count: () => Promise<Int>;
-}
-
-export interface AggregateOwnerSubscription
-  extends Promise<AsyncIterator<AggregateOwner>>,
     Fragmentable {
   count: () => Promise<AsyncIterator<Int>>;
 }
@@ -1908,6 +2019,60 @@ export interface AggregateSiteSubscription
   count: () => Promise<AsyncIterator<Int>>;
 }
 
+export interface UserConnection {
+  pageInfo: PageInfo;
+  edges: UserEdge[];
+}
+
+export interface UserConnectionPromise
+  extends Promise<UserConnection>,
+    Fragmentable {
+  pageInfo: <T = PageInfoPromise>() => T;
+  edges: <T = FragmentableArray<UserEdge>>() => T;
+  aggregate: <T = AggregateUserPromise>() => T;
+}
+
+export interface UserConnectionSubscription
+  extends Promise<AsyncIterator<UserConnection>>,
+    Fragmentable {
+  pageInfo: <T = PageInfoSubscription>() => T;
+  edges: <T = Promise<AsyncIterator<UserEdgeSubscription>>>() => T;
+  aggregate: <T = AggregateUserSubscription>() => T;
+}
+
+export interface UserEdge {
+  node: User;
+  cursor: String;
+}
+
+export interface UserEdgePromise extends Promise<UserEdge>, Fragmentable {
+  node: <T = UserPromise>() => T;
+  cursor: () => Promise<String>;
+}
+
+export interface UserEdgeSubscription
+  extends Promise<AsyncIterator<UserEdge>>,
+    Fragmentable {
+  node: <T = UserSubscription>() => T;
+  cursor: () => Promise<AsyncIterator<String>>;
+}
+
+export interface AggregateUser {
+  count: Int;
+}
+
+export interface AggregateUserPromise
+  extends Promise<AggregateUser>,
+    Fragmentable {
+  count: () => Promise<Int>;
+}
+
+export interface AggregateUserSubscription
+  extends Promise<AsyncIterator<AggregateUser>>,
+    Fragmentable {
+  count: () => Promise<AsyncIterator<Int>>;
+}
+
 export interface BatchPayload {
   count: Long;
 }
@@ -1952,6 +2117,7 @@ export interface BillSubscriptionPayloadSubscription
 export interface BillPreviousValues {
   id: ID_Output;
   year: Int;
+  isPaid: Boolean;
   payment_due: DateTimeOutput;
 }
 
@@ -1960,6 +2126,7 @@ export interface BillPreviousValuesPromise
     Fragmentable {
   id: () => Promise<ID_Output>;
   year: () => Promise<Int>;
+  isPaid: () => Promise<Boolean>;
   payment_due: () => Promise<DateTimeOutput>;
 }
 
@@ -1968,72 +2135,8 @@ export interface BillPreviousValuesSubscription
     Fragmentable {
   id: () => Promise<AsyncIterator<ID_Output>>;
   year: () => Promise<AsyncIterator<Int>>;
+  isPaid: () => Promise<AsyncIterator<Boolean>>;
   payment_due: () => Promise<AsyncIterator<DateTimeOutput>>;
-}
-
-export interface OwnerSubscriptionPayload {
-  mutation: MutationType;
-  node: Owner;
-  updatedFields: String[];
-  previousValues: OwnerPreviousValues;
-}
-
-export interface OwnerSubscriptionPayloadPromise
-  extends Promise<OwnerSubscriptionPayload>,
-    Fragmentable {
-  mutation: () => Promise<MutationType>;
-  node: <T = OwnerPromise>() => T;
-  updatedFields: () => Promise<String[]>;
-  previousValues: <T = OwnerPreviousValuesPromise>() => T;
-}
-
-export interface OwnerSubscriptionPayloadSubscription
-  extends Promise<AsyncIterator<OwnerSubscriptionPayload>>,
-    Fragmentable {
-  mutation: () => Promise<AsyncIterator<MutationType>>;
-  node: <T = OwnerSubscription>() => T;
-  updatedFields: () => Promise<AsyncIterator<String[]>>;
-  previousValues: <T = OwnerPreviousValuesSubscription>() => T;
-}
-
-export interface OwnerPreviousValues {
-  id: ID_Output;
-  last_name: String;
-  first_name: String;
-  primary_email: String;
-  alt_email?: String;
-  password: String;
-  perm_phone_number?: String;
-  other_phone_number?: String;
-  updatedAt: DateTimeOutput;
-}
-
-export interface OwnerPreviousValuesPromise
-  extends Promise<OwnerPreviousValues>,
-    Fragmentable {
-  id: () => Promise<ID_Output>;
-  last_name: () => Promise<String>;
-  first_name: () => Promise<String>;
-  primary_email: () => Promise<String>;
-  alt_email: () => Promise<String>;
-  password: () => Promise<String>;
-  perm_phone_number: () => Promise<String>;
-  other_phone_number: () => Promise<String>;
-  updatedAt: () => Promise<DateTimeOutput>;
-}
-
-export interface OwnerPreviousValuesSubscription
-  extends Promise<AsyncIterator<OwnerPreviousValues>>,
-    Fragmentable {
-  id: () => Promise<AsyncIterator<ID_Output>>;
-  last_name: () => Promise<AsyncIterator<String>>;
-  first_name: () => Promise<AsyncIterator<String>>;
-  primary_email: () => Promise<AsyncIterator<String>>;
-  alt_email: () => Promise<AsyncIterator<String>>;
-  password: () => Promise<AsyncIterator<String>>;
-  perm_phone_number: () => Promise<AsyncIterator<String>>;
-  other_phone_number: () => Promise<AsyncIterator<String>>;
-  updatedAt: () => Promise<AsyncIterator<DateTimeOutput>>;
 }
 
 export interface PaymentSubscriptionPayload {
@@ -2201,6 +2304,77 @@ export interface SitePreviousValuesSubscription
   site_phone_number: () => Promise<AsyncIterator<String>>;
 }
 
+export interface UserSubscriptionPayload {
+  mutation: MutationType;
+  node: User;
+  updatedFields: String[];
+  previousValues: UserPreviousValues;
+}
+
+export interface UserSubscriptionPayloadPromise
+  extends Promise<UserSubscriptionPayload>,
+    Fragmentable {
+  mutation: () => Promise<MutationType>;
+  node: <T = UserPromise>() => T;
+  updatedFields: () => Promise<String[]>;
+  previousValues: <T = UserPreviousValuesPromise>() => T;
+}
+
+export interface UserSubscriptionPayloadSubscription
+  extends Promise<AsyncIterator<UserSubscriptionPayload>>,
+    Fragmentable {
+  mutation: () => Promise<AsyncIterator<MutationType>>;
+  node: <T = UserSubscription>() => T;
+  updatedFields: () => Promise<AsyncIterator<String[]>>;
+  previousValues: <T = UserPreviousValuesSubscription>() => T;
+}
+
+export interface UserPreviousValues {
+  id: ID_Output;
+  last_name: String;
+  first_name: String;
+  primary_email: String;
+  alt_email?: String;
+  password: String;
+  perm_phone_number?: String;
+  other_phone_number?: String;
+  role: String;
+  isDeleted: Boolean;
+  updatedAt: DateTimeOutput;
+}
+
+export interface UserPreviousValuesPromise
+  extends Promise<UserPreviousValues>,
+    Fragmentable {
+  id: () => Promise<ID_Output>;
+  last_name: () => Promise<String>;
+  first_name: () => Promise<String>;
+  primary_email: () => Promise<String>;
+  alt_email: () => Promise<String>;
+  password: () => Promise<String>;
+  perm_phone_number: () => Promise<String>;
+  other_phone_number: () => Promise<String>;
+  role: () => Promise<String>;
+  isDeleted: () => Promise<Boolean>;
+  updatedAt: () => Promise<DateTimeOutput>;
+}
+
+export interface UserPreviousValuesSubscription
+  extends Promise<AsyncIterator<UserPreviousValues>>,
+    Fragmentable {
+  id: () => Promise<AsyncIterator<ID_Output>>;
+  last_name: () => Promise<AsyncIterator<String>>;
+  first_name: () => Promise<AsyncIterator<String>>;
+  primary_email: () => Promise<AsyncIterator<String>>;
+  alt_email: () => Promise<AsyncIterator<String>>;
+  password: () => Promise<AsyncIterator<String>>;
+  perm_phone_number: () => Promise<AsyncIterator<String>>;
+  other_phone_number: () => Promise<AsyncIterator<String>>;
+  role: () => Promise<AsyncIterator<String>>;
+  isDeleted: () => Promise<AsyncIterator<Boolean>>;
+  updatedAt: () => Promise<AsyncIterator<DateTimeOutput>>;
+}
+
 /*
 The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `"4"`) or integer (such as `4`) input value will be accepted as an ID.
 */
@@ -2218,11 +2392,6 @@ The `Boolean` scalar type represents `true` or `false`.
 export type Boolean = boolean;
 
 /*
-The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
-*/
-export type String = string;
-
-/*
 DateTime scalar input type, allowing Date
 */
 export type DateTimeInput = Date | string;
@@ -2232,6 +2401,11 @@ DateTime scalar output type, which is always a string
 */
 export type DateTimeOutput = string;
 
+/*
+The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
+*/
+export type String = string;
+
 export type Long = string;
 
 /**
@@ -2240,7 +2414,7 @@ export type Long = string;
 
 export const models: Model[] = [
   {
-    name: "Owner",
+    name: "User",
     embedded: false
   },
   {
